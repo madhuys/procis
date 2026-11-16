@@ -289,7 +289,8 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
 }
 @media (max-width: 420px) {
   .cmdty .lbl { display: none; }
-  .ticker .chg { display: none; }
+  .ticker .chg, .ticker > span:nth-child(n+2) { display: none; }
+  .ticker { min-width: 0; }
   .brand .word { display: none; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }

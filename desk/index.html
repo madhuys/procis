@@ -22,7 +22,8 @@
   <span class="lab">Commodity desk</span>
   <label class="cmdty"><span class="lbl">Commodity</span>
     <select id="cmdty" aria-label="Commodity">
-      <option value="wheat" selected>Wheat</option>
+      <option value="wheat">Wheat</option>
+      <option value="palm">Palm oil</option>
       <option value="maize" disabled>Maize (next)</option>
       <option value="soy" disabled>Soybeans (next)</option>
       <option value="rice" disabled>Rice (next)</option>
@@ -91,14 +92,14 @@
       </div>
       <div class="grid g-2" style="margin-top:12px">
         <div class="panel">
-          <div class="panel__h"><p class="lbl">World balance, million tonnes</p><span class="tag tag--mute">USDA · FAO · IGC</span></div>
+          <div class="panel__h"><p class="lbl">World balance, million tonnes</p><span class="tag tag--mute" id="bal-tag">USDA · FAO · IGC</span></div>
           <div class="chart" id="ch-balance"></div>
           <p class="note" id="bal-note"></p>
         </div>
         <div class="panel">
-          <div class="panel__h"><p class="lbl">US Gulf wheat export price, $/t, monthly</p><span class="tag tag--mute">World Bank</span></div>
+          <div class="panel__h"><p class="lbl" id="ovp-lbl">US Gulf wheat export price, $/t, monthly</p><span class="tag tag--mute">World Bank</span></div>
           <div class="chart" id="ch-ov-price"></div>
-          <p class="note">Hard red winter, US Gulf FOB. A physical export price, so it sits above Chicago futures by the basis. Source: <a href="https://www.worldbank.org/en/research/commodity-markets" target="_blank" rel="noopener">World Bank Pink Sheet</a>.</p>
+          <p class="note" id="ovp-note">Hard red winter, US Gulf FOB. A physical export price, so it sits above Chicago futures by the basis. Source: <a href="https://www.worldbank.org/en/research/commodity-markets" target="_blank" rel="noopener">World Bank Pink Sheet</a>.</p>
         </div>
       </div>
     </section>
@@ -106,7 +107,7 @@
     <!-- 02 COUNTRIES -->
     <section class="screen" id="s-countries" aria-labelledby="h-co">
       <div class="head">
-        <div><h1 id="h-co">Top 10 producers, plus Argentina</h1><p>The ten largest growers by 2025/26 output, with Argentina added because it is the sixth-largest exporter. Pick a row for the rationale, crop calendar and source.</p></div>
+        <div><h1 id="h-co">Top 10 producers, plus Argentina</h1><p id="co-p">The ten largest growers by 2025/26 output, with Argentina added because it is the sixth-largest exporter. Pick a row for the rationale, crop calendar and source.</p></div>
         <div class="seg" id="co-metric" role="group" aria-label="Sort by">
           <button data-m="prod" aria-pressed="true">Output</button><button data-m="exp" aria-pressed="false">Exports</button><button data-m="chg" aria-pressed="false">Change</button><button data-m="risk" aria-pressed="false">Risk</button>
         </div>
@@ -114,11 +115,11 @@
       <div class="grid g-side">
         <div class="grid" style="align-content:start">
           <div class="panel"><div class="tbl-wrap"><table class="tbl" id="co-tbl"></table></div>
-            <p class="note">Mt = million tonnes. Output: 2024/25, 2025/26, 2026/27 forecast. Change = 26/27 against 25/26. Risk is a desk score (0-100) from weather, logistics and policy exposure, not reported data.</p></div>
+            <p class="note" id="co-note">Mt = million tonnes. Output: 2024/25, 2025/26, 2026/27 forecast. Change = 26/27 against 25/26. Risk is a desk score (0-100) from weather, logistics and policy exposure, not reported data.</p></div>
           <div class="panel">
-            <div class="panel__h"><p class="lbl">Crop calendar</p><span class="xs muted"><i style="display:inline-block;width:10px;height:10px;background:rgba(142,197,255,.45);vertical-align:-1px"></i> sowing &nbsp; <i style="display:inline-block;width:10px;height:10px;background:var(--wheat);vertical-align:-1px"></i> harvest &nbsp; <span style="outline:1px solid var(--ember);padding:0 3px">now</span></span></div>
+            <div class="panel__h"><p class="lbl" id="cal-lbl">Crop calendar</p><span class="xs muted" id="cal-legend"><i style="display:inline-block;width:10px;height:10px;background:rgba(142,197,255,.45);vertical-align:-1px"></i> sowing &nbsp; <i style="display:inline-block;width:10px;height:10px;background:var(--wheat);vertical-align:-1px"></i> harvest &nbsp; <span style="outline:1px solid var(--ember);padding:0 3px">now</span></span></div>
             <div class="cal" id="cal"></div>
-            <p class="note">Main winter-wheat seasons, simplified. Spring wheat (Canada, Russia) is sown April-May.</p>
+            <p class="note" id="cal-note">Main winter-wheat seasons, simplified. Spring wheat (Canada, Russia) is sown April-May.</p>
           </div>
         </div>
         <div class="panel detail" id="co-detail" style="align-self:start;position:sticky;top:calc(var(--top-h) + 12px)"></div>
@@ -128,7 +129,7 @@
     <!-- 03 MARKET -->
     <section class="screen" id="s-market" aria-labelledby="h-mk">
       <div class="head">
-        <div><h1 id="h-mk">Market &amp; futures</h1><p>Exchange benchmarks converted to $/t, the forward curve, and twenty years of monthly prices for wheat and the markets that drive it.</p></div>
+        <div><h1 id="h-mk">Market &amp; futures</h1><p id="mk-p">Exchange benchmarks converted to $/t, the forward curve, and twenty years of monthly prices for wheat and the markets that drive it.</p></div>
       </div>
       <div class="kpis" id="mk-kpis"></div>
       <div class="grid g-main">
@@ -143,17 +144,17 @@
         </div>
         <div class="grid" style="align-content:start">
           <div class="panel">
-            <div class="panel__h"><p class="lbl">Forward curve, CBOT SRW</p><span class="tag tag--mute">c/bu</span></div>
+            <div class="panel__h"><p class="lbl" id="curve-lbl">Forward curve, CBOT SRW</p><span class="tag tag--mute" id="curve-unit">c/bu</span></div>
             <div class="chart" id="ch-curve"></div>
             <p class="note" id="curve-note"></p>
           </div>
           <div class="panel">
-            <div class="panel__h"><p class="lbl">Physical offers</p><span class="tag tag--mute">€/t → $/t</span></div>
+            <div class="panel__h"><p class="lbl">Physical offers</p><span class="tag tag--mute" id="phys-unit">€/t → $/t</span></div>
             <div class="tbl-wrap"><table class="tbl" id="phys"></table></div>
             <p class="note">Indicative offers, 12-13 Nov 2026, from the desk's market pack. Ukraine FOB quotes are left out: the ones found could not be checked.</p>
           </div>
           <div class="panel">
-            <div class="panel__h"><p class="lbl">Correlation with wheat, monthly returns, 5y</p></div>
+            <div class="panel__h"><p class="lbl" id="corr-lbl">Correlation with wheat, monthly returns, 5y</p></div>
             <div id="corr"></div>
             <p class="note">Computed in your browser from the World Bank series. Correlation of month-on-month % changes.</p>
           </div>
@@ -164,7 +165,7 @@
     <!-- 04 LOGISTICS -->
     <section class="screen" id="s-logistics" aria-labelledby="h-lg">
       <div class="head">
-        <div><h1 id="h-lg">Shipping &amp; risk</h1><p>Where wheat gets stuck. Chokepoint status, freight and the routes that carry the world's exports.</p></div>
+        <div><h1 id="h-lg">Shipping &amp; risk</h1><p id="lg-p">Where wheat gets stuck. Chokepoint status, freight and the routes that carry the world's exports.</p></div>
       </div>
       <div class="kpis" id="lg-kpis"></div>
       <div class="panel map2d" style="margin-bottom:12px">
@@ -203,7 +204,7 @@
     <!-- 06 INNOVATION -->
     <section class="screen" id="s-innovation" aria-labelledby="h-in">
       <div class="head">
-        <div><h1 id="h-in">Innovation tracker</h1><p>Fifteen developments across five categories that change how wheat is grown, moved, priced or claimed. Each has a dated milestone and a source.</p></div>
+        <div><h1 id="h-in">Innovation tracker</h1><p id="in-p">Fifteen developments across five categories that change how wheat is grown, moved, priced or claimed. Each has a dated milestone and a source.</p></div>
         <div class="seg" id="in-view" role="group" aria-label="View"><button data-v="cards" aria-pressed="true">Cards</button><button data-v="matrix" aria-pressed="false">Impact matrix</button><button data-v="time" aria-pressed="false">Horizon</button></div>
       </div>
       <div class="cat-tabs" id="cat-tabs"></div>
@@ -228,15 +229,15 @@
           <div id="shocks"></div>
           <div class="shock" style="border-top:1px solid var(--line);margin-top:6px">
             <span></span><label for="elas">Price elasticity to stocks-to-use (assumption)</label>
-            <div class="ctl"><input type="range" id="elas" min="0.8" max="3" step="0.1" value="1.6"><output id="elas-o"></output></div>
-            <span class="why">-1.6 means a 10% fall in stocks-to-use lifts price about 16%. Studies of grain markets put it roughly between -1 and -3.</span>
+            <div class="ctl"><input type="range" id="elas" min="0.5" max="3" step="0.1" value="1.6"><output id="elas-o"></output></div>
+            <span class="why" id="elas-why">-1.6 means a 10% fall in stocks-to-use lifts price about 16%. Studies of grain markets put it roughly between -1 and -3.</span>
           </div>
         </div>
         <div class="grid" style="align-content:start">
           <div class="panel">
             <div class="res-figs" id="res-figs"></div>
             <div class="chart" id="ch-fan"></div>
-            <p class="note">Shaded band: 80% range from monthly wheat volatility over the last five years, around the scenario path.</p>
+            <p class="note" id="fan-note">Shaded band: 80% range from monthly wheat volatility over the last five years, around the scenario path.</p>
           </div>
           <div class="panel">
             <div class="panel__h"><p class="lbl">What moved the price, $/t</p></div>
@@ -332,8 +333,16 @@
   </main>
 </div>
 <div class="toast" id="toast" role="status"></div>
-<script src="data/wheat.js"></script>
-<script src="vendor/globe.gl.min.js" defer></script>
-<script src="desk.js" defer></script>
+<script>
+(function () {
+  var OK = ["wheat", "palm"], q = new URLSearchParams(location.search).get("c"), c = q;
+  try { if (!c) c = localStorage.getItem("procis-desk-cmdty"); } catch (e) {}
+  if (OK.indexOf(c) < 0) c = "wheat";
+  try { localStorage.setItem("procis-desk-cmdty", c); } catch (e) {}
+  var sel = document.getElementById("cmdty"); sel.value = c;
+  sel.addEventListener("change", function () { try { localStorage.setItem("procis-desk-cmdty", sel.value); } catch (e) {} var u = new URL(location.href); u.searchParams.set("c", sel.value); location.href = u.pathname + u.search + location.hash; });
+  ["data/" + c + ".js", "vendor/globe.gl.min.js", "desk.js"].forEach(function (s) { var e = document.createElement("script"); e.src = s; e.async = false; document.body.appendChild(e); });
+})();
+</script>
 </body>
 </html>

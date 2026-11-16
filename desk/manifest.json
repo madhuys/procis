@@ -1,7 +1,7 @@
 {
   "name": "Procis Commodity Desk",
   "short_name": "Procis Desk",
-  "description": "Wheat: producers, futures, freight, news, innovation, scenarios and forecast models.",
+  "description": "Wheat and palm oil: producers, futures, freight, news, innovation, scenarios and forecast models.",
   "start_url": "./#overview",
   "scope": "./",
   "display": "standalone",

@@ -2,7 +2,18 @@
    Every reported figure carries its source. Scores marked "desk" are Procis judgement, not reported data. */
 window.DESK = {
   asOf: "2026-11-16",
+  id: "wheat",
   commodity: "Wheat",
+  curveBench: "cbot",
+  carryIdx: [0, 2],
+  risk: [
+    { n: "Black Sea logistics", v: 86, w: .30, why: "About 97% of Azov-Black Sea capacity shut by mid-Aug; Oct Russian seaborne exports −55.8% y/y." },
+    { n: "Red Sea & canals", v: 58, w: .15, why: "Suez traffic −50%, Panama −32% y/y; Cape diversions add 7-14 days." },
+    { n: "Weather (El Niño)", v: 55, w: .20, why: "Strong El Niño peaking late 2026-early 2027; Australia, India and SE Asia exposed." },
+    { n: "Export policy", v: 50, w: .15, why: "Russia's duty suspension ends 31 Dec; India back as a seller." },
+    { n: "Import demand", v: 34, w: .10, why: "World trade down to 210 Mt; China a possible upside surprise." },
+    { n: "Stocks cushion", v: 24, w: .10, why: "USDA world stocks raised to 280.8 Mt; stocks-to-use about 34%." }
+  ],
   fx: { eurusd: 1.1052, date: "2026-11-13", src: "ECB reference rate", url: "https://data.ecb.europa.eu/data/datasets/EXR" },
   world: {
     years: ["24/25", "25/26", "26/27"],
@@ -101,21 +112,21 @@ window.DESK = {
   /* typical lanes (illustrative routes, weighted by exporter volume; not reported flows) */
   flows: [["RU",0],["RU",0],["EU",0],["UA",0],["RU",5],["CA",0],["CA",4],["AU",1],["AU",4],["US",3],["US",4],["US",1],["AR",2],["EU",5],["IN",1],["CA",2],["AU",0]],
   benchmarks: [
-    { id: "cbot", name: "CBOT SRW", venue: "Chicago · Dec 26", px: 588.75, unit: "c/bu", usd: null, date: "2026-11-16", chg: "Near four-month lows",
+    { id: "cbot", name: "CBOT SRW", venue: "Chicago · Dec 26", px: 588.75, unit: "c/bu", conv: "cbu", usd: null, date: "2026-11-16", chg: "Near four-month lows",
       curve: [["Dec 26", 588.75], ["Mar 27", 602.75], ["May 27", 608], ["Mar 28", 653.5]],
       src: ["Commodity Board, 16 Nov 2026", "https://commodity-board.com/wheat-under-pressure-as-cbot-tests-lows-while-physical-premiums-diverge"] },
-    { id: "kc", name: "KC HRW", venue: "Kansas City · Dec 26", px: 627, unit: "c/bu", usd: null, date: "2026-11-13", chg: "Up 6-9 c recently; firmer than SRW",
+    { id: "kc", name: "KC HRW", venue: "Kansas City · Dec 26", px: 627, unit: "c/bu", conv: "cbu", usd: null, date: "2026-11-13", chg: "Up 6-9 c recently; firmer than SRW",
       src: ["Farm Progress, 13 Nov 2026", "https://www.farmprogress.com/markets-and-quotes/afternoon-market-recap"] },
-    { id: "matif", name: "MATIF milling", venue: "Euronext Paris · Dec 26", px: 233.5, unit: "€/t", usd: null, date: "2026-11-13", chg: "Stable; premium to Chicago",
+    { id: "matif", name: "MATIF milling", venue: "Euronext Paris · Dec 26", px: 233.5, unit: "€/t", conv: "eur", usd: null, date: "2026-11-13", chg: "Stable; premium to Chicago",
       curve: [["Dec 26", 233.5], ["Mar 27", 230.5]],
       src: ["Commodity Board, 16 Nov 2026", "https://commodity-board.com/wheat-under-pressure-as-cbot-tests-lows-while-physical-premiums-diverge"] },
     { id: "bs", name: "Black Sea", venue: "Russia/Ukraine FOB", px: null, unit: "", usd: null, date: "2026-11-13", chg: "No reliable FOB quote: corridor constrained",
       src: ["Al Jazeera, 10 Nov 2026", "https://www.aljazeera.com/news/2026/11/10/why-is-india-trying-to-broker-a-russia-ukraine-black-sea-food-corridor"] }
   ],
   physical: [
-    { name: "France FOB", eurT: 260, date: "2026-11-13" },
-    { name: "USA FOB (11.5% protein)", eurT: 230, date: "2026-11-13" },
-    { name: "Germany feed, EXW", eurT: 240, date: "2026-11-12" }
+    { name: "France FOB", px: 260, cur: "eur", date: "2026-11-13" },
+    { name: "USA FOB (11.5% protein)", px: 230, cur: "eur", date: "2026-11-13" },
+    { name: "Germany feed, EXW", px: 240, cur: "eur", date: "2026-11-12" }
   ],
   freight: { bdi: 2980, panamax: 2118, panamaxDay: 19063, date: "2026-11-13",
     src: ["Maritime Professional, 13 Nov 2026", "https://www.maritimeprofessional.com/news/baltic-index-ends-seven-session-424304"] },
