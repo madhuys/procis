@@ -22,8 +22,8 @@
 <link rel="apple-touch-icon" href="brand/apple-touch-icon.png">
 <link rel="preload" href="fonts/Fraunces-VF.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/Geist-VF.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="img/hero-world.webp" as="image" media="(min-width: 861px)">
-<link rel="preload" href="img/hero-world-m.webp" as="image" media="(max-width: 860px)">
+<link rel="preload" href="img/hero-world-v2.webp" as="image" media="(min-width: 861px)">
+<link rel="preload" href="img/hero-world-m-v2.webp" as="image" media="(max-width: 860px)">
 <link rel="stylesheet" href="scrollcraft.css">
 <link rel="stylesheet" href="css/viewer.css?v=20261116e">
 <style>
@@ -100,7 +100,7 @@ a { color: inherit; }
 .hero__far { inset: -7% -3%; }
 .hero__lean { position: absolute; inset: 0; translate: calc(var(--hx, 0) * -14px) calc(var(--hy, 0) * -9px); }
 .hero__far img { width: 100%; height: 100%; object-fit: cover; object-position: 62% 60%; scale: calc(1.03 + var(--sc-p, 0) * 0.09); transform-origin: 70% 70%; }
-.hero__near { top: -14%; bottom: -14%; right: -9vw; width: 46vw; mix-blend-mode: screen; opacity: 0.3; }
+.hero__near { top: -14%; bottom: -14%; right: -9vw; width: 46vw; mix-blend-mode: screen; opacity: 0.3; -webkit-mask-image: linear-gradient(to right, transparent, #000 40%); mask-image: linear-gradient(to right, transparent, #000 40%); }
 .hero__near .hero__lean { translate: calc(var(--hx, 0) * -42px) calc(var(--hy, 0) * -20px); }
 .hero__near img { width: 100%; height: 100%; object-fit: cover; object-position: 30% 50%; }
 .hero__air { inset: 0; background:
@@ -582,18 +582,18 @@ a { color: inherit; }
       <div class="hero__far" data-sc-parallax="0.55" aria-hidden="true">
         <div class="hero__lean">
           <picture>
-            <source media="(max-width: 860px)" srcset="img/hero-world-m.webp" width="768" height="1376">
-            <img src="img/hero-world.webp" width="1376" height="768" alt="" fetchpriority="high">
+            <source media="(max-width: 860px)" srcset="img/hero-world-m-v2.webp" width="768" height="1376">
+            <img src="img/hero-world-v2.webp" width="1376" height="768" alt="" fetchpriority="high">
           </picture>
         </div>
       </div>
       <div class="hero__air" aria-hidden="true"></div>
       <div class="hero__near" data-sc-parallax="-1.5" aria-hidden="true">
-        <div class="hero__lean"><img src="img/hero-near.webp" width="768" height="1376" alt=""></div>
+        <div class="hero__lean"><img src="img/hero-near-v2.webp" width="768" height="1376" alt=""></div>
       </div>
       <div class="hero__scrim" aria-hidden="true"></div>
       <div class="hero__copy" data-sc-cue="0 0.78 0">
-        <p class="kicker hero__eyebrow">Procis · agentic procurement for consumer goods</p>
+        <p class="kicker hero__eyebrow">Procis · the procurement OS for consumer goods</p>
         <h1 class="disp"><span class="ln"><span>Every price,</span></span> <span class="ln"><span><em>proven.</em></span></span></h1>
         <p class="hero__sub">Procis checks every supplier price against what it should cost. Then its agents act on the gap.</p>
         <div class="hero__cta">

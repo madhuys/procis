@@ -16,7 +16,7 @@ const BU = 0.0272155; // t per bushel of wheat
 const cbu2t = c => c / 100 / BU;
 const eur2usd = e => e * D.fx.eurusd;
 const FXC = { usd: v => v, eur: v => v * D.fx.eurusd, cbu: cbu2t, myr: v => v / D.fx.usdmyr, cny: v => v / D.fx.usdcny, clb: v => v * 22.0462 };
-const toUSD = (cv, v) => (FXC[cv || "usd"])(v);
+const toUSD = (cv, v) => (FXC[cv || "usd"] || (x => x / D.fx[cv]))(v); /* other currencies: conv "usdinr" etc. divides by D.fx[conv] */
 const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 const NOWM = +D.asOf.slice(5, 7); // 11
 const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -242,6 +242,8 @@ PF.palm = () => {
     "#md-series": `<button data-k="palm" aria-pressed="true">Palm oil</button><button data-k="soyoil" aria-pressed="false">Soybean oil</button>`
   }
 }; };
+/* A data file may carry its own profile: window.DESK_PF = H => ({...}) with the helpers below. */
+if (typeof window.DESK_PF === "function") PF[CMD] = () => window.DESK_PF({ D, B, W, curve, carry, STU0, RISKIDX, NOWM, MONTHS, BU, ser: k => ser(k), f0, f1, f2, pct, sgn, esc, clamp, toUSD });
 const K = (PF[CMD] || PF.wheat)();
 document.documentElement.style.setProperty("--wheat", K.hex);
 Object.entries(K.html).forEach(([sel, h]) => $$(sel).forEach(el => el.innerHTML = h));
@@ -820,7 +822,7 @@ function checkAlerts(quiet) {
 
 /* ---------- boot ---------- */
 Promise.all([fetch("data/prices.json").then(r => r.json()), fetch("data/countries.json").then(r => r.json())]).then(([p, g]) => {
-  P = p; GEO = g; ticker(); updateCounts();
+  P = p; GEO = g; if (D.series) Object.assign(P.series, D.series); ticker(); updateCounts();
   const h = location.hash.slice(1); go(h && $("#s-" + h) ? h : "overview", false);
   if (!rendered.overview && cur !== "overview") { /* render overview lazily when visited */ }
   checkAlerts();

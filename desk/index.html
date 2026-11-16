@@ -22,11 +22,19 @@
   <span class="lab">Commodity desk</span>
   <label class="cmdty"><span class="lbl">Commodity</span>
     <select id="cmdty" aria-label="Commodity">
-      <option value="wheat">Wheat</option>
-      <option value="palm">Palm oil</option>
-      <option value="maize" disabled>Maize (next)</option>
-      <option value="soy" disabled>Soybeans (next)</option>
-      <option value="rice" disabled>Rice (next)</option>
+      <optgroup label="Agri">
+        <option value="wheat">Wheat</option>
+        <option value="palm">Palm oil</option>
+        <option value="sugar" disabled>Sugar (coming)</option>
+      </optgroup>
+      <optgroup label="Petrochemicals">
+        <option value="pta" disabled>PTA (coming)</option>
+        <option value="meg" disabled>MEG (coming)</option>
+      </optgroup>
+      <optgroup label="Plastics">
+        <option value="pet" disabled>PET resin (coming)</option>
+        <option value="pp" disabled>Polypropylene (coming)</option>
+      </optgroup>
     </select>
   </label>
   <div class="ticker" id="ticker" aria-label="Benchmarks"></div>
@@ -335,13 +343,16 @@
 <div class="toast" id="toast" role="status"></div>
 <script>
 (function () {
-  var OK = ["wheat", "palm"], q = new URLSearchParams(location.search).get("c"), c = q;
+  var OK = [].map.call(document.querySelectorAll("#cmdty option:not([disabled])"), function (o) { return o.value; }), q = new URLSearchParams(location.search).get("c"), c = q;
   try { if (!c) c = localStorage.getItem("procis-desk-cmdty"); } catch (e) {}
   if (OK.indexOf(c) < 0) c = "wheat";
   try { localStorage.setItem("procis-desk-cmdty", c); } catch (e) {}
   var sel = document.getElementById("cmdty"); sel.value = c;
   sel.addEventListener("change", function () { try { localStorage.setItem("procis-desk-cmdty", sel.value); } catch (e) {} var u = new URL(location.href); u.searchParams.set("c", sel.value); location.href = u.pathname + u.search + location.hash; });
-  ["data/" + c + ".js", "vendor/globe.gl.min.js", "desk.js"].forEach(function (s) { var e = document.createElement("script"); e.src = s; e.async = false; document.body.appendChild(e); });
+  var load = function (list) { list.forEach(function (s, i) { var e = document.createElement("script"); e.src = s; e.async = false;
+    if (i === 0 && c !== "wheat") e.onerror = function () { try { localStorage.setItem("procis-desk-cmdty", "wheat"); } catch (x) {} location.replace(location.pathname + "?c=wheat" + location.hash); };
+    document.body.appendChild(e); }); };
+  load(["data/" + c + ".js", "vendor/globe.gl.min.js", "desk.js"]);
 })();
 </script>
 </body>
