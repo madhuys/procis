@@ -511,6 +511,13 @@ a { color: inherit; }
   .close h2 { font-size: clamp(2.8rem, 12.6vw, 4rem); }
   .foot { flex-direction: column; align-items: flex-start; gap: 0.5rem; padding-bottom: 1.4rem; }
 }
+/* short landscape phones: a pinned stage taller than the screen hides its lower rows,
+   so pinned acts flow as ordinary sections here (the rail keeps its pan) */
+@media (orientation: landscape) and (max-height: 500px) {
+  [data-sc-act="pin"] { height: auto !important; }
+  [data-sc-act="pin"] .sc-stage { position: relative; height: auto; min-height: 100svh; overflow: visible; }
+  .claim .sc-stage, .weeks .sc-stage { padding-block: calc(var(--nav-h) + 1.5rem) 3rem; }
+}
 @media (min-width: 600px) and (max-width: 860px) {
   .claim__head h2 { font-size: clamp(3.2rem, 8vw, 4.4rem); }
   .weeks h2 { font-size: clamp(2.6rem, 7vw, 3.8rem); }

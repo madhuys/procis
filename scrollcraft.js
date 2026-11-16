@@ -614,7 +614,9 @@
         if (!a.pinned || !a.stage || a.stageChecked) return;
         a.stageChecked = true;
         var pos = getComputedStyle(a.stage).position;
-        if (pos !== 'sticky' && pos !== '-webkit-sticky') {
+        // short landscape phones unpin on purpose (index.html), so no warning there
+        var shortLand = matchMedia('(orientation: landscape) and (max-height: 500px)').matches;
+        if (pos !== 'sticky' && pos !== '-webkit-sticky' && !shortLand) {
           console.warn('[scrollcraft] act "' + (a.el.id || a.device) + '" will not pin: its stage computes ' +
             'position:' + pos + ', not sticky. Something is overriding .sc-stage.', a.stage);
         }
