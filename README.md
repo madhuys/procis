@@ -1,3 +1,3 @@
-# procis
+# Procis.ai
 
-Procis.ai showcase site (static), published on GitHub Pages
+Every price, proven. Showcase site: https://madhuys.github.io/procis/
