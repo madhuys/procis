@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Procis Commodity Desk · Wheat</title>
-<meta name="description" content="Procis Commodity Desk: wheat across the top producers, futures, freight and chokepoints, news with a buyer's read, an innovation tracker, scenario shocks and forecast models you can run in the browser.">
+<meta name="description" content="Procis Commodity Desk: wheat, palm oil, sugar, PTA, MEG, PET resin and polypropylene across the top producers, futures, freight and chokepoints, news with a buyer's read, an innovation tracker, scenario shocks and forecast models you can run in the browser.">
 <meta name="theme-color" content="#0B0D12">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="../brand/procis-mark-reversed.svg" type="image/svg+xml">
@@ -25,15 +25,15 @@
       <optgroup label="Agri">
         <option value="wheat">Wheat</option>
         <option value="palm">Palm oil</option>
-        <option value="sugar" disabled>Sugar (coming)</option>
+        <option value="sugar">Sugar</option>
       </optgroup>
       <optgroup label="Petrochemicals">
-        <option value="pta" disabled>PTA (coming)</option>
-        <option value="meg" disabled>MEG (coming)</option>
+        <option value="pta">PTA</option>
+        <option value="meg">MEG</option>
       </optgroup>
       <optgroup label="Plastics">
-        <option value="pet" disabled>PET resin (coming)</option>
-        <option value="pp" disabled>Polypropylene (coming)</option>
+        <option value="pet">PET resin</option>
+        <option value="pp">Polypropylene</option>
       </optgroup>
     </select>
   </label>
@@ -159,7 +159,7 @@
           <div class="panel">
             <div class="panel__h"><p class="lbl">Physical offers</p><span class="tag tag--mute" id="phys-unit">€/t → $/t</span></div>
             <div class="tbl-wrap"><table class="tbl" id="phys"></table></div>
-            <p class="note">Indicative offers, 12-13 Nov 2026, from the desk's market pack. Ukraine FOB quotes are left out: the ones found could not be checked.</p>
+            <p class="note" id="phys-note">Indicative offers, 12-13 Nov 2026, from the desk's market pack. Ukraine FOB quotes are left out: the ones found could not be checked.</p>
           </div>
           <div class="panel">
             <div class="panel__h"><p class="lbl" id="corr-lbl">Correlation with wheat, monthly returns, 5y</p></div>
@@ -237,7 +237,7 @@
           <div id="shocks"></div>
           <div class="shock" style="border-top:1px solid var(--line);margin-top:6px">
             <span></span><label for="elas">Price elasticity to stocks-to-use (assumption)</label>
-            <div class="ctl"><input type="range" id="elas" min="0.5" max="3" step="0.1" value="1.6"><output id="elas-o"></output></div>
+            <div class="ctl"><input type="range" id="elas" min="0.2" max="3" step="0.1" value="1.6"><output id="elas-o"></output></div>
             <span class="why" id="elas-why">-1.6 means a 10% fall in stocks-to-use lifts price about 16%. Studies of grain markets put it roughly between -1 and -3.</span>
           </div>
         </div>

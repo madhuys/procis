@@ -301,3 +301,5 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
 @media (min-width: 1281px) { .news-side { position: sticky; top: calc(var(--top-h) + 16px); align-self: start; } }
 @media (min-width: 1281px) { .globe-panel { align-self: start; position: sticky; top: calc(var(--top-h) + 12px); } }
 @media (min-width: 901px) and (max-width: 1280px) { .globe-wrap { height: 560px; } }
+
+#mk-series .btn{white-space:normal;text-align:left;max-width:100%}

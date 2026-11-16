@@ -232,6 +232,7 @@ PF.palm = () => {
     "#ovp-note": `Palm oil (Malaysia/Indonesia, 5% bulk, c.i.f. North-West Europe) against soybean oil, its main substitute. The gap between them drives India's buying. Source: <a href="https://www.worldbank.org/en/research/commodity-markets" target="_blank" rel="noopener">World Bank Pink Sheet</a>.`,
     "#h-co": "Top 10 producers", "#co-p": "The ten largest growers by 2025/26 output. Ranks 6-10 come from an industry tally that gives 2025/26 only, so their 2026/27 column is blank. Pick a row for the rationale, output calendar and source.",
     "#cal-lbl": "Output calendar", "#cal-legend": sw,
+    "#phys-note": "Dated reference prices from the desk's market pack, 1-11 Nov 2026: Indonesia's and Malaysia's official CPO references and the World Bank October average. Not live offers.",
     "#cal-note": "Palm fruit is harvested all year. Shown: peak and low-output months in Indonesia, Malaysia, Thailand and Colombia. Seasons for the other producers are not in the pack.",
     "#mk-p": "Exchange benchmarks converted to $/t, the Bursa forward curve, and twenty years of monthly prices for palm oil and the oils and energy that drive it.",
     "#curve-lbl": "Forward curve, Bursa FCPO", "#curve-unit": "RM/t", "#phys-unit": "Quoted → $/t",
@@ -433,7 +434,7 @@ function applyLayers() {
   globe.pointsData(pts).ringsData(layers.choke ? D.chokepoints.filter(c => c.status !== "ok") : []);
   globe.polygonsData(globe.polygonsData()); // re-colour
   const lg = [];
-  if (layers.risk) lg.push(`Tint: desk risk <span style="color:var(--ok)">low</span> → <span style="color:var(--bad)">high</span>`); else if (layers.prod) lg.push(`Tint &amp; height: ${YR[1]} output`);
+  if (layers.risk) lg.push(`Tint: desk risk <span style="color:var(--ok)">low</span> → <span style="color:var(--bad)">high</span>`); else if (layers.prod) lg.push(`Tint &amp; height: ${YR[1]} ${K.prodWord || "output"}`);
   if (layers.flows) lg.push(`<span style="color:var(--sky)">Lanes</span>: typical, not volumes`);
   if (layers.choke) lg.push(`Chokepoints: <span style="color:var(--bad)">●</span> shut <span style="color:var(--warn)">●</span> strained <span style="color:var(--ok)">●</span> open`);
   if (layers.news) lg.push(`News: <span style="color:var(--bad)">●</span> bullish <span style="color:var(--ok)">●</span> bearish`);
@@ -478,7 +479,7 @@ function coChange(c) { return c.prod[2] != null && c.prod[1] ? c.prod[2] / c.pro
 function renderCountries() {
   const rows = [...D.countries].sort((a, b) => coSort === "prod" ? (b.prod[1] || 0) - (a.prod[1] || 0) : coSort === "exp" ? b.exp - a.exp : coSort === "risk" ? b.risk - a.risk : (coChange(a) ?? 9) - (coChange(b) ?? 9));
   const maxP = Math.max(...D.countries.map(c => c.prod[1] || 0)), rankP = [...D.countries].sort((a, b) => (b.prod[1] || 0) - (a.prod[1] || 0)).map(c => c.id);
-  $("#co-tbl").innerHTML = `<thead><tr><th class="hs">#</th><th>Country</th><th class="n hs">${YR[0]}</th><th>${YR[1]} output</th><th class="n hs">${YR[2]}f</th><th class="n">Chg</th><th class="n hs">Exports</th><th class="n">Risk</th><th></th></tr></thead><tbody>` +
+  $("#co-tbl").innerHTML = `<thead><tr><th class="hs">#</th><th>Country</th><th class="n hs">${YR[0]}</th><th>${YR[1]} ${K.prodWord || "output"}</th><th class="n hs">${YR[2]}f</th><th class="n">Chg</th><th class="n hs">Exports</th><th class="n">Risk</th><th></th></tr></thead><tbody>` +
     rows.map(c => { const ch = coChange(c); return `<tr data-id="${c.id}" class="${c.id === selCountry ? "sel" : ""}" tabindex="0"><td class="mono faint hs">${rankP.indexOf(c.id) + 1}</td><td style="white-space:nowrap"><span class="flag" aria-hidden="true">${c.flag}</span>${esc(c.name)}</td>
       <td class="n faint hs">${f1(c.prod[0])}</td><td class="bar-cell"><div class="bc"><i style="width:calc((100% - 52px) * ${((c.prod[1] || 0) / maxP).toFixed(3)})"></i><span>${f1(c.prod[1])}</span></div></td>
       <td class="n hs">${f1(c.prod[2])}</td><td class="n ${ch < 0 ? "up" : ch > 0 ? "dn" : "flat"}">${ch == null ? "—" : pct(ch)}</td><td class="n hs">${c.exp ? f1(c.exp) : "<span class='faint'>—</span>"}</td>
@@ -493,7 +494,7 @@ function renderDetail() {
   $("#co-detail").innerHTML = `<div class="panel__h" style="margin-bottom:2px"><p class="lbl">Country profile</p>${starBtn("c", c.id, c.name)}</div>
     <h2>${c.flag} ${esc(c.name)}</h2><span class="tag tag--mute">${esc(c.trend)}</span>
     <div class="chart" id="co-mini" style="margin-top:8px"></div>
-    <dl><dt>Output ${YR[2]}</dt><dd>${c.prod[2] != null ? f1(c.prod[2]) + " Mt" : "<span class='muted'>not in the pack</span>"} ${ch != null ? `<span class="${ch < 0 ? "up" : "dn"} mono small">${pct(ch)}</span>` : ""}</dd>
+    <dl><dt>${K.prodWord ? K.prodWord[0].toUpperCase() + K.prodWord.slice(1) : "Output"} ${YR[2]}</dt><dd>${c.prod[2] != null ? f1(c.prod[2]) + " Mt" : "<span class='muted'>not in the pack</span>"} ${ch != null ? `<span class="${ch < 0 ? "up" : "dn"} mono small">${pct(ch)}</span>` : ""}</dd>
     <dt>Exports ${YR[2]}</dt><dd>${c.exp ? f1(c.exp) + ` Mt <span class="muted small">· ${(share * 100).toFixed(0)}% of world trade</span>` : "<span class='muted'>not a significant exporter</span>"}</dd>
     <dt>${K.calA}</dt><dd>${mlist(c.harvest)}</dd>${c.sow && c.sow.length ? `<dt>${K.calB}</dt><dd>${mlist(c.sow)}</dd>` : ""}
     <dt>Risk</dt><dd><div class="gauge" style="margin:6px 0 2px"><i style="width:${c.risk}%"></i></div><span class="xs muted">${c.risk}/100 · desk judgement</span></dd></dl>
@@ -502,7 +503,7 @@ function renderDetail() {
     <p class="src">Source: <a href="${c.src[1]}" target="_blank" rel="noopener">${esc(c.src[0])}</a></p>
     <button class="btn" data-go="overview" id="co-globe">Show on globe</button>`;
   $("#co-globe").addEventListener("click", () => setTimeout(() => cardCountry(c), 80));
-  barChart($("#co-mini"), D.world.years.map((y, i) => ({ label: y, vals: { p: c.prod[i] } })), [{ k: "p", name: "Output, Mt", color: K.hex }], { h: 150, unit: "Mt" });
+  barChart($("#co-mini"), D.world.years.map((y, i) => ({ label: y, vals: { p: c.prod[i] } })), [{ k: "p", name: (K.prodWord ? K.prodWord[0].toUpperCase() + K.prodWord.slice(1) : "Output") + ", Mt", color: K.hex }], { h: 150, unit: "Mt" });
 }
 function renderCal() {
   let h = `<span></span>` + MONTHS.map((m, i) => `<span class="h ${i + 1 === NOWM ? "" : ""}">${m[0]}</span>`).join("");
@@ -526,7 +527,7 @@ R.market = () => {
   lineChart($("#ch-curve"), curve.map(c => c.m), [{ name: CB.name, color: "#FF4F1F", vals: curve.map(c => c.c), dots: 1 }], { h: 200, yfmt: f0, tipfmt: K.curveTip, aria: CB.name + " forward curve" });
   $("#curve-note").innerHTML = K.curveNote() + ` <a href="${CB.src[1]}" target="_blank" rel="noopener">${esc(CB.src[0])}</a>`;
   const PB = B[K.physVs], CUR = { eur: "€", usd: "$", myr: "RM", cny: "¥" };
-  $("#phys").innerHTML = `<thead><tr><th>Offer</th><th class="n">${K.physCur}</th><th class="n">$/t</th><th class="n">vs ${esc(K.physVsName)}</th></tr></thead><tbody>` + D.physical.map(p => { const u = toUSD(p.cur, p.px); return `<tr><td>${esc(p.name)} <span class="faint xs">${p.date.slice(5)}</span></td><td class="n">${f0(p.px)}</td><td class="n">${f0(u)}</td><td class="n">${sgn(u - PB.usd, f0)}</td></tr>`; }).join("") + "</tbody>";
+  $("#phys").innerHTML = `<thead><tr><th>${K.offerHdr || "Offer"}</th><th class="n">${K.physCur}</th><th class="n">$/t</th><th class="n">vs ${esc(K.physVsName)}</th></tr></thead><tbody>` + D.physical.map(p => { const u = toUSD(p.cur, p.px); return `<tr><td>${esc(p.name)} <span class="faint xs">${p.date.slice(5)}</span></td><td class="n">${f0(p.px)}</td><td class="n">${f0(u)}</td><td class="n">${sgn(u - PB.usd, f0)}</td></tr>`; }).join("") + "</tbody>";
   // correlations
   const rets = k => { const a = ser(k).slice(-61); return a.slice(1).map((d, i) => d[1] / a[i][1] - 1); };
   const base = rets(K.base), corr = (a, b) => { const n = a.length, ma = a.reduce((s, v) => s + v, 0) / n, mb = b.reduce((s, v) => s + v, 0) / n; let c = 0, va = 0, vb = 0; for (let i = 0; i < n; i++) { c += (a[i] - ma) * (b[i] - mb); va += (a[i] - ma) ** 2; vb += (b[i] - mb) ** 2; } return c / Math.sqrt(va * vb); };
@@ -698,7 +699,7 @@ function runScenario() {
   $("#res-figs").innerHTML = [
     { l: "Scenario price", f: `$${f1(r.P)}`, s: K.scEquiv(r.P) },
     { l: "vs today", f: `<span class="${ch > .001 ? "up" : ch < -.001 ? "dn" : ""}">${pct(ch)}</span>`, s: `from $${f1(r.P0)} ${K.scBenchName}` },
-    { l: "Stocks-to-use", f: (r.stu * 100).toFixed(1) + "%", s: `${sgn(r.dS)} Mt to exporters' supply` },
+    { l: "Stocks-to-use", f: (r.stu * 100).toFixed(1) + "%", s: `${sgn(r.dS)} Mt ${K.stuSupply || "to exporters' supply"}` },
     { l: "Elasticity", f: `−${b.toFixed(1)}`, s: `price ∝ (stocks-to-use)^b` }
   ].map(k => `<div class="kpi"><p class="lbl">${k.l}</p><span class="fig">${k.f}</span><span class="sub">${k.s}</span></div>`).join("");
   // fan: base = futures curve interpolated; scenario converges over 3 months
