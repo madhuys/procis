@@ -353,7 +353,19 @@ a { color: inherit; }
 /* ============================================================== MOBILE == */
 
 /* ================================================================ SHOWCASE == */
-.show { padding-block: clamp(9rem, 22vh, 14rem) clamp(3rem, 6vh, 5rem); scroll-margin-top: var(--nav-h, 4.4rem); }
+.reel { padding-block: clamp(7rem, 18vh, 11rem) 0; scroll-margin-top: var(--nav-h, 4.4rem); }
+.reel__frame { position: relative; aspect-ratio: 16 / 9; border-radius: 20px; overflow: hidden; background: #000; border: 1px solid color-mix(in oklab, var(--bone) 14%, transparent); box-shadow: 0 50px 140px -40px rgba(0, 0, 0, .9); }
+.reel__frame video { width: 100%; height: 100%; display: block; object-fit: cover; background: #000; }
+.reel__go { position: absolute; inset: 0; display: flex; align-items: flex-start; justify-content: flex-start; padding: clamp(1rem, 2.4vw, 2rem); border: 0; background: none; cursor: pointer; color: var(--ink); }
+.reel__go .tile__play { position: static; translate: none; width: auto; height: auto; display: inline-flex; gap: 0.7rem; align-items: center; padding: 0.95rem 1.4rem 0.95rem 1.15rem; border-radius: 999px; font: 600 var(--sc-t-sm)/1 var(--sc-font-text); }
+.reel__go .tile__play svg { width: 1.3rem; height: 1.3rem; translate: 0; }
+.reel__go:hover .tile__play, .reel__go:focus-visible .tile__play { transform: scale(1.08); }
+.reel.is-playing .reel__go { display: none; }
+.reel__cap { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.6rem 1.6rem; margin-top: 1.1rem; }
+.reel__cap .tile__k { margin-right: auto; }
+.reel__cap a { font-family: var(--sc-font-mono); font-size: var(--sc-t-xs); letter-spacing: 0.1em; text-transform: uppercase; color: var(--ember); text-decoration: none; }
+.reel__cap a:hover { text-decoration: underline; text-underline-offset: 0.3em; }
+.show { padding-block: clamp(5rem, 12vh, 8rem) clamp(3rem, 6vh, 5rem); scroll-margin-top: var(--nav-h, 4.4rem); }
 .show__top { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: clamp(2rem, 6vw, 7rem); align-items: end; margin-bottom: clamp(2.4rem, 6vh, 4rem); }
 .show h2 { font-size: var(--sc-t-3xl); line-height: 0.98; letter-spacing: -0.03em; margin: 0; max-width: 14ch; }
 .show .sc-body { font-size: var(--sc-t-base); }
@@ -367,8 +379,10 @@ a { color: inherit; }
 .tile__t { font-family: var(--sc-font-display); font-size: var(--sc-t-xl); line-height: 1.05; letter-spacing: -0.02em; margin: 0; }
 .tile__d { margin: 0; color: var(--sc-ink-soft); font-size: var(--sc-t-sm); line-height: 1.5; }
 .tile__go { font-family: var(--sc-font-mono); font-size: var(--sc-t-xs); letter-spacing: 0.1em; text-transform: uppercase; color: var(--ember); margin-top: 0.35rem; }
-.show__lead { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 1.2rem; margin-bottom: 1.2rem; }
+.show__lead { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.2rem; margin-bottom: 1.2rem; }
+.show__lead .tile--lab { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); }
 .show__lead .tile__pic { aspect-ratio: 16 / 10; }
+.show__lead .tile--lab .tile__txt { align-content: center; padding: clamp(1.4rem, 3vw, 3rem); }
 .show__lead .tile--film .tile__pic { aspect-ratio: 16 / 9; }
 .tile--film .tile__pic video { object-position: center; }
 .tile--film .tile__pic img { object-position: center; }
@@ -383,7 +397,7 @@ a { color: inherit; }
 .bar__link { font: 500 var(--sc-t-sm)/1 var(--sc-font-text); color: inherit; text-decoration: none; padding: 0.72rem 0.9rem; opacity: 0.85; }
 .bar__link:hover { opacity: 1; text-decoration: underline; text-underline-offset: 0.3em; }
 @media (max-width: 860px) {
-  .show__top, .show__lead, .show__grid { grid-template-columns: minmax(0, 1fr); }
+  .show__top, .show__lead, .show__grid, .show__lead .tile--lab { grid-template-columns: minmax(0, 1fr); }
   .bar__link { padding: 0.6rem 0.4rem; font-size: 0.8rem; }
 }
 
@@ -555,6 +569,21 @@ a { color: inherit; }
     </div>
   </section>
 
+  <!-- 1a · THE FILM · straight after the hero: the case in two minutes, playing in place -->
+  <section class="reel" id="film" data-sc-act="flow" data-sc-drift="#0B0D12" aria-labelledby="filmH">
+    <div class="sc-wrap" data-sc-in>
+      <div class="reel__frame">
+        <video src="film/procis-film-16x9.mp4" poster="film/procis-film-poster.webp" width="1920" height="1080" preload="none" playsinline aria-label="Procis film: every price, proven, in two minutes"></video>
+        <button class="reel__go" type="button" aria-label="Play the film, sound on"><span class="tile__play" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z" fill="currentColor"/></svg>Play the film · 2 min</span></button>
+      </div>
+      <div class="reel__cap">
+        <span class="tile__k" id="filmH">Film · 2 min · sound on · the case from the increase letter to the counter-offer</span>
+        <a href="film/procis-film-16x9.mp4" data-open="film">Full screen →</a>
+        <a href="film/procis-film-9x16.mp4" target="_blank" rel="noopener">Vertical 9:16 →</a>
+      </div>
+    </div>
+  </section>
+
   <!-- 1b · PROOF IN HAND · flow, straight after the hero: everything a CPO can open today, in the viewer -->
   <section class="show" id="showcase" data-sc-act="flow" data-sc-drift="#0B0D12" aria-labelledby="showH">
     <div class="sc-wrap">
@@ -573,15 +602,6 @@ a { color: inherit; }
             <h3 class="tile__t">The should-cost lab</h3>
             <p class="tile__d">Build the cost, check the claim, watch the index, print the negotiation pack. Every number recalculates as you type.</p>
             <span class="tile__go">Open the lab here →</span>
-          </div>
-        </a>
-        <a class="tile tile--film" href="film/procis-film-16x9.mp4" data-open="film">
-          <div class="tile__pic"><img src="film/procis-film-poster.webp" width="1280" height="720" alt="A still from the Procis film" loading="lazy"><span class="tile__play" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z" fill="currentColor"/></svg></span></div>
-          <div class="tile__txt">
-            <span class="tile__k">Film · 2 min · sound on</span>
-            <h3 class="tile__t">Every price, proven.</h3>
-            <p class="tile__d">The case in two minutes, from the increase letter to the counter-offer.</p>
-            <span class="tile__go">Play the film →</span>
           </div>
         </a>
       </div>
@@ -1171,6 +1191,15 @@ a { color: inherit; }
     requestAnimationFrame(frame);
   }
   requestAnimationFrame(frame);
+})();
+</script>
+<script>
+(function () {
+  var r = document.querySelector('.reel'); if (!r) return;
+  var v = r.querySelector('video'), go = r.querySelector('.reel__go');
+  go.addEventListener('click', function () { v.controls = true; r.classList.add('is-playing'); v.play(); });
+  v.addEventListener('play', function () { r.classList.add('is-playing'); v.controls = true; });
+  document.addEventListener('click', function (e) { if (e.target.closest('[data-open]')) v.pause(); }, true);
 })();
 </script>
 </body>
