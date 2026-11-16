@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Procis Terminal · Packaging command centre (demo)</title>
-<meta name="description" content="A packaging command centre: feedstocks, suppliers, events, should-cost, supplier claims, competitors and the innovation radar in one screen. Real public indices; demo company and events.">
+<title>Procis Terminal · Procurement command centre (demo)</title>
+<meta name="description" content="A procurement command centre for a consumer goods buyer: commodity indices, supplier risk, should-cost, supplier price claims and index watch in one screen. Real public indices; demo company and events.">
 <meta name="theme-color" content="#0B0D12">
-<meta property="og:title" content="Procis Terminal · Packaging command centre">
-<meta property="og:description" content="One week in a packaging command centre, on real indices. Every price, proven.">
+<meta property="og:title" content="Procis Terminal · Procurement command centre">
+<meta property="og:description" content="One week in a procurement command centre, on real indices. Every price, proven.">
 <meta property="og:image" content="https://madhuys.github.io/procis/img/og-image.png">
 <link rel="icon" type="image/svg+xml" href="../brand/procis-favicon.svg">
 <link rel="preload" href="../fonts/Geist-VF.woff2" as="font" type="font/woff2" crossorigin>
@@ -19,8 +19,8 @@
 <header class="top">
   <a class="brand" href="../" aria-label="Procis home"><img src="../brand/procis-mark-reversed.svg" alt="" width="26" height="26"><span class="word">procis</span></a>
   <span class="lab">Terminal</span>
-  <span class="client"><b>Brightwater Consumer Goods</b> · Packaging · India</span>
-  <span class="tag" title="Company, suppliers, competitors and most events are fictional. Indices marked Real are public data.">Demo company</span>
+  <span class="client"><b>Brightwater Consumer Goods</b> · Procurement · India</span>
+  <span class="tag" title="Company, suppliers and most events are fictional. Indices marked Real are public data.">Demo company</span>
   <span class="clock mono" id="clock"></span>
   <button class="btn btn--ember" id="tour-btn" type="button">Play the week</button>
 </header>
@@ -32,8 +32,7 @@
     <button data-screen="suppliers"><span class="k">F3</span>Suppliers</button>
     <button data-screen="cost"><span class="k">F4</span>Should-cost</button>
     <button data-screen="inbox"><span class="k">F5</span>Inbox<i class="dot" id="inbox-dot" hidden></i></button>
-    <button data-screen="rivals"><span class="k">F6</span>Competitors</button>
-    <button data-screen="radar"><span class="k">F7</span>Radar</button>
+    <button data-screen="watch"><span class="k">F6</span>Index watch</button>
     <div class="rail-foot">
       <p class="lbl">Data</p>
       <p class="small muted" id="built"></p>
@@ -44,7 +43,7 @@
   <main id="main" tabindex="-1">
     <!-- MARKETS -->
     <section class="screen" id="s-markets" aria-labelledby="h-markets">
-      <div class="head"><h1 id="h-markets">Markets</h1><p class="muted">The feedstocks, energy, freight and currency behind every pack. <span class="tag tag--real">Real</span> is public data with its source. <span class="tag">Illustrative</span> is a paid grade price, shown here as an example; a client deployment uses a licensed feed.</p></div>
+      <div class="head"><h1 id="h-markets">Markets</h1><p class="muted">The ingredients, chemicals, packaging materials, energy, freight and currency behind everything Brightwater buys. <span class="tag tag--real">Real</span> is public data with its source; a client deployment adds its licensed grade feeds.</p></div>
       <div class="chart-card">
         <div class="chart-head"><div><p class="lbl" id="ch-group"></p><h2 id="ch-title"></h2><p class="small muted" id="ch-src"></p></div><div class="chart-fig"><output class="fig big" id="ch-last"></output><span class="sub" id="ch-chg"></span></div></div>
         <svg id="chart" viewBox="0 0 900 260" role="img" aria-label="Chart of the selected series"></svg>
@@ -54,25 +53,25 @@
 
     <!-- WIRE -->
     <section class="screen" id="s-wire" hidden aria-labelledby="h-wire">
-      <div class="head"><h1 id="h-wire">Wire</h1><p class="muted">Events that move packaging supply: geopolitics, weather, plant shutdowns, shipping and policy, each mapped to the suppliers, feedstocks and packs it touches. Items marked <span class="tag tag--real">Real</span> are from the cited source; the rest are demo events.</p></div>
+      <div class="head"><h1 id="h-wire">Wire</h1><p class="muted">Events that move supply and price: index moves, plant shutdowns, weather, shipping and policy, each mapped to the suppliers, indices and items it touches. Items marked <span class="tag tag--real">Real</span> are from the cited source; the rest are demo events.</p></div>
       <div class="filters" id="wire-filters" role="group" aria-label="Filter events"></div>
       <ol class="wire" id="wire"></ol>
     </section>
 
     <!-- SUPPLIERS -->
     <section class="screen" id="s-suppliers" hidden aria-labelledby="h-sup">
-      <div class="head"><h1 id="h-sup">Suppliers</h1><p class="muted">Spend, plants and the packs each supplier makes. Select one to see its exposure by pack.</p></div>
+      <div class="head"><h1 id="h-sup">Suppliers</h1><p class="muted">Spend by supplier across every category. Select one to see its exposure by item.</p></div>
       <div class="split">
-        <table class="tbl" id="sup-table"><thead><tr><th>Supplier</th><th>Makes</th><th class="r">Spend share</th><th>Plant</th><th>Status</th></tr></thead><tbody></tbody></table>
+        <table class="tbl" id="sup-table"><thead><tr><th>Supplier</th><th>Category</th><th class="r">Spend share</th><th>Plant</th><th>Status</th></tr></thead><tbody></tbody></table>
         <aside class="card" id="sup-detail"></aside>
       </div>
     </section>
 
     <!-- SHOULD-COST -->
     <section class="screen" id="s-cost" hidden aria-labelledby="h-cost">
-      <div class="head"><h1 id="h-cost">Should-cost</h1><p class="muted">What each pack should cost from its bill of materials, priced on the indices. Pick a pack; switch supplier to re-price it.</p></div>
+      <div class="head"><h1 id="h-cost">Should-cost</h1><p class="muted">What each item should cost from its cost blocks, priced on the indices. Pick an item; where a second source is qualified, switch supplier to re-price it.</p></div>
       <div class="split">
-        <table class="tbl" id="sku-table"><thead><tr><th>Pack</th><th>Supplier</th><th class="r">Paid / 1,000</th><th class="r">Should-cost</th><th class="r">Gap</th></tr></thead><tbody></tbody></table>
+        <table class="tbl" id="sku-table"><thead><tr><th>Item</th><th>Supplier</th><th class="r">Paid</th><th class="r">Should-cost</th><th class="r">Gap</th></tr></thead><tbody></tbody></table>
         <aside class="card" id="sku-detail"></aside>
       </div>
     </section>
@@ -86,17 +85,10 @@
       </div>
     </section>
 
-    <!-- COMPETITORS -->
-    <section class="screen" id="s-rivals" hidden aria-labelledby="h-rivals">
-      <div class="head"><h1 id="h-rivals">Competitors</h1><p class="muted">Pack launches, material switches and price-pack moves by the brands you sell against, read weekly. Demo brands.</p></div>
-      <div class="rivals" id="rivals"></div>
-    </section>
-
-    <!-- RADAR -->
-    <section class="screen" id="s-radar" hidden aria-labelledby="h-radar">
-      <div class="head"><h1 id="h-radar">Radar</h1><p class="muted">Innovation in packs and the machines that make and fill them, each costed against today's spec. Stage: watch, trial or adopt.</p></div>
-      <div class="filters" id="radar-filters" role="group" aria-label="Filter radar"></div>
-      <div class="radar" id="radar"></div>
+    <!-- INDEX WATCH -->
+    <section class="screen" id="s-watch" hidden aria-labelledby="h-watch">
+      <div class="head"><h1 id="h-watch">Index watch</h1><p class="muted">Every contract priced in May, read against its index since. Where the index has fallen, the price should come down; where it has risen, an ask is coming and the fair part is already known.</p></div>
+      <div id="watch"></div>
     </section>
   </main>
 </div>

@@ -10,8 +10,8 @@
   const mlabel = d => MONTHS[+d.slice(5, 7) - 1] + " " + d.slice(0, 4);
   const dlabel = d => +d.slice(8, 10) + " " + mlabel(d);
 
-  const S = { series: {}, order: [], sel: "plastics-eu", supplier: "laminex", pack: "toothpaste", assign: {}, mail: "kestrel-price",
-    wireFilter: "All", radarFilter: "All", touring: -1, approved: false };
+  const S = { series: {}, order: [], sel: "sugar", supplier: "laminex", item: "toothpaste", assign: {}, mail: "sarna-price",
+    wireFilter: "All", touring: -1, approved: false };
 
   /* ---------- data ---------- */
   function valueAt(id, ym) { // value for month "YYYY-MM" (first point in that month)
@@ -43,34 +43,26 @@
     const f = D.freight;
     S.series.wci = { id: "wci", name: f.name, unit: f.unit, group: f.group, real: true, snapshot: true, src: f.src, url: f.url, data: [f.last] };
     S.order = D.tilesOrder.filter(id => S.series[id]);
-    $("#built").textContent = "Indices fetched " + mk.built.replace("T", " ").replace("Z", " UTC") + ". Company and most events are demo.";
+    $("#built").textContent = "Indices fetched " + mk.built.replace("T", " ").replace("Z", " UTC") + ". Company, suppliers and most events are demo.";
     computeWire();
     renderTiles(); renderChart();
     renderWireFilters(); renderWire();
-    renderSuppliers(); renderPacks(); renderMailList(); renderMail();
-    renderRivals(); renderRadarFilters(); renderRadar();
+    renderSuppliers(); renderItems(); renderMailList(); renderMail(); renderWatch();
     $("#wire-dot").hidden = false; $("#inbox-dot").hidden = false;
   }
 
   function computeWire() {
-    const g = changeSince("gas-eu", BASE), r = changeSince("plastics-eu", BASE);
-    const gl = lastOf("gas-eu"), rl = lastOf("plastics-eu");
     D.wire.forEach(w => {
-      if (w.computed === "gas") {
-        w.title = "EU gas price " + (g >= 0 ? "up " : "down ") + Math.abs(g).toFixed(0) + "% since May";
-        w.body = "EU natural gas averaged $" + gl[1].toFixed(2) + " per MMBtu in " + mlabel(gl[0]) + ", against $" + valueAt("gas-eu", BASE).toFixed(2) + " in May. Energy blocks in every pack re-price on it.";
-        w.real = true; w.src = ["IMF via FRED, PNGASEUUSDM", S.series["gas-eu"].url];
-      }
-      if (w.computed === "resin") {
-        w.title = "EU primary plastics " + (r < 0 ? Math.abs(r).toFixed(1) + "% below" : r.toFixed(1) + "% above") + " its May level";
-        w.body = "The producer price index stood at " + rl[1] + " in " + mlabel(rl[0]) + " against " + valueAt("plastics-eu", BASE) + " in May. A polymer increase claimed since May needs to show why.";
-        w.real = true; w.src = ["Eurostat sts_inppd_m, C20.16", S.series["plastics-eu"].url];
-      }
+      if (!w.computed) return;
+      const id = w.computed, ser = S.series[id], c = changeSince(id, BASE), l = lastOf(id), may = valueAt(id, BASE);
+      w.title = ser.name.replace(/, producer prices$/, "") + (c >= 0 ? " up " : " down ") + Math.abs(c).toFixed(c > -10 && c < 10 ? 1 : 0) + "% since May";
+      w.body = `${ser.name} stood at ${fmtVal(ser, l[1])} ${ser.unit} in ${mlabel(l[0])}, against ${fmtVal(ser, may)} in May. ${w.note}`;
+      w.real = true; w.src = [ser.src, ser.url];
     });
   }
 
   /* ---------- screens ---------- */
-  const SCREENS = ["markets", "wire", "suppliers", "cost", "inbox", "rivals", "radar"];
+  const SCREENS = ["markets", "wire", "suppliers", "cost", "inbox", "watch"];
   function show(name) {
     SCREENS.forEach(n => { $("#s-" + n).hidden = n !== name; });
     $$(".rail button").forEach(b => b.toggleAttribute("aria-current", b.dataset.screen === name));
@@ -81,7 +73,7 @@
   }
   $$(".rail button").forEach(b => b.addEventListener("click", () => show(b.dataset.screen)));
   document.addEventListener("keydown", e => {
-    const m = /^F([1-7])$/.exec(e.key);
+    const m = /^F([1-6])$/.exec(e.key);
     if (m && !e.altKey && !e.ctrlKey && !e.metaKey) { e.preventDefault(); show(SCREENS[+m[1] - 1]); }
     if (S.touring >= 0 && e.key === "Escape") endTour();
   });
@@ -152,7 +144,7 @@
   }
 
   /* ---------- wire ---------- */
-  const KINDS = ["All", "Plants", "Shipping", "Weather", "Markets", "Policy", "Competitors"];
+  const KINDS = ["All", "Markets", "Plants", "Shipping", "Weather", "Policy"];
   function renderWireFilters() {
     $("#wire-filters").innerHTML = KINDS.map(k => `<button type="button" aria-pressed="${k === S.wireFilter}">${k}</button>`).join("");
     $$("#wire-filters button").forEach(b => b.addEventListener("click", () => { S.wireFilter = b.textContent; renderWireFilters(); renderWire(); }));
@@ -169,26 +161,28 @@
   }
   function follow(t, v) {
     if (t === "supplier") { S.supplier = v; renderSuppliers(); show("suppliers"); }
-    if (t === "pack") { S.pack = v; renderPacks(); show("cost"); }
+    if (t === "item") { S.item = v; renderItems(); show("cost"); }
     if (t === "series") { selectSeries(v); show("markets"); }
     if (t === "screen") show(v);
   }
 
   /* ---------- suppliers ---------- */
-  const packById = id => D.packs.find(p => p.id === id), supById = id => D.suppliers.find(s => s.id === id);
+  const itemById = id => D.items.find(p => p.id === id), supById = id => D.suppliers.find(s => s.id === id);
+  const share = s => (s.spend / D.totalSpend * 100).toFixed(1);
+  const crore = n => "₹" + n.toFixed(n < 10 ? 2 : 1) + " crore";
   function renderSuppliers() {
     $("#sup-table tbody").innerHTML = D.suppliers.map(s => `<tr data-id="${s.id}" aria-selected="${s.id === S.supplier}" tabindex="0">
-      <td>${esc(s.name)}</td><td class="small">${esc(s.makes)}</td><td class="r">${s.share}%</td><td>${esc(s.plant)}</td><td><span class="status ${s.status[0]}">${esc(s.status[1])}</span></td></tr>`).join("");
+      <td>${esc(s.name)}<div class="small muted">${esc(s.makes)}</div></td><td class="small">${esc(s.cat)}</td><td class="r">${share(s)}%</td><td>${esc(s.plant)}</td><td><span class="status ${s.status[0]}">${esc(s.status[1])}</span></td></tr>`).join("");
     rowsClick("#sup-table", id => { S.supplier = id; renderSuppliers(); });
     const s = supById(S.supplier);
-    $("#sup-detail").innerHTML = `<p class="lbl">${esc(s.plant)} · ${s.share}% of packaging spend</p><h2>${esc(s.name)}</h2><p class="small">${esc(s.detail)}</p>
-      <p class="lbl" style="margin-top:14px">Exposure by pack</p>
-      <table class="tbl"><thead><tr><th>Pack</th><th class="r">Volume from ${esc(s.name.split(" ")[0])}</th><th class="r">Cover</th></tr></thead><tbody>
-      ${s.exposure.map(([pid, sh, wk]) => `<tr data-id="${pid}"><td>${esc(packById(pid).name)}<div class="bar${s.status[0] === "bad" ? " ember" : ""}"><i style="width:${sh}%"></i></div></td><td class="r">${sh}%</td><td class="r">${wk} wk</td></tr>`).join("")}
-      </tbody></table>
+    $("#sup-detail").innerHTML = `<p class="lbl">${esc(s.cat)} · ${esc(s.plant)} · ${crore(s.spend)} a year, ${share(s)}% of spend</p><h2>${esc(s.name)}</h2><p class="small">${esc(s.detail)}</p>
+      ${s.exposure.length ? `<p class="lbl" style="margin-top:14px">Exposure by item</p>
+      <table class="tbl"><thead><tr><th>Item</th><th class="r">Volume from ${esc(s.name.split(" ")[0])}</th><th class="r">Cover</th></tr></thead><tbody>
+      ${s.exposure.map(([pid, sh, wk]) => `<tr data-id="${pid}"><td>${esc(itemById(pid).name)}<div class="bar${s.status[0] === "bad" ? " ember" : ""}"><i style="width:${sh}%"></i></div></td><td class="r">${sh}%</td><td class="r">${wk} wk</td></tr>`).join("")}
+      </tbody></table>` : `<p class="note">No should-cost item: a service contract. Its index-linked part is on Index watch.</p>`}
       ${s.status[0] === "bad" ? `<p class="note">Alternative qualified source: Kestrel Packaging, Daman, with spare tube capacity. <button class="chip" type="button" id="go-move">Re-price on Kestrel</button></p>` : ""}`;
-    $$("#sup-detail tbody tr").forEach(r => r.addEventListener("click", () => { S.pack = r.dataset.id; renderPacks(); show("cost"); }));
-    const gm = $("#go-move"); if (gm) gm.addEventListener("click", () => { S.pack = "toothpaste"; renderPacks(); show("cost"); });
+    $$("#sup-detail tbody tr").forEach(r => r.addEventListener("click", () => { S.item = r.dataset.id; renderItems(); show("cost"); }));
+    const gm = $("#go-move"); if (gm) gm.addEventListener("click", () => { S.item = "toothpaste"; renderItems(); show("cost"); });
   }
   function rowsClick(sel, fn) {
     $$(sel + " tbody tr").forEach(r => {
@@ -208,33 +202,36 @@
     const paid = alt ? alt.paid : p.paid;
     return { sup, paid, now, total, gap: (paid / total - 1) * 100, mr, er };
   }
-  function renderPacks() {
-    $("#sku-table tbody").innerHTML = D.packs.map(p => {
+  const gapCls = g => g > 2 ? "up" : g < -2 ? "warn" : "down";
+  function renderItems() {
+    $("#sku-table tbody").innerHTML = D.items.map(p => {
       const q = priced(p), moved = S.assign[p.id] && S.assign[p.id] !== p.supplier;
-      return `<tr data-id="${p.id}" aria-selected="${p.id === S.pack}" tabindex="0"><td>${esc(p.name)}</td><td class="small">${esc(supById(q.sup).name)}${moved ? ' <span class="tag tag--warn">Moved</span>' : ""}</td>
-        <td class="r">${inr(q.paid)}</td><td class="r">${inr(q.total)}</td><td class="r ${q.gap > 2 ? "up" : "down"}">${pct(q.gap)}</td></tr>`;
+      return `<tr data-id="${p.id}" aria-selected="${p.id === S.item}" tabindex="0"><td>${esc(p.name)}<div class="small muted">${esc(supById(q.sup).cat)}</div></td><td class="small">${esc(supById(q.sup).name)}${moved ? ' <span class="tag tag--warn">Moved</span>' : ""}</td>
+        <td class="r">${inr(q.paid)}<div class="small muted">per ${esc(p.unit)}</div></td><td class="r">${inr(q.total)}</td><td class="r ${gapCls(q.gap)}">${pct(q.gap)}</td></tr>`;
     }).join("");
-    rowsClick("#sku-table", id => { S.pack = id; renderPacks(); });
-    const p = packById(S.pack), q = priced(p);
+    rowsClick("#sku-table", id => { S.item = id; renderItems(); });
+    const p = itemById(S.item), q = priced(p);
     const opts = [p.supplier].concat(Object.keys(p.alt || {}));
-    $("#sku-detail").innerHTML = `<p class="lbl">Per 1,000 packs · priced on ${mlabel(lastOf(p.mat)[0])} indices</p><h2>${esc(p.name)}</h2>
+    const gapNote = q.gap > 2 ? "Paying above should-cost: a case to bring the price down." : q.gap < -2 ? "Paying below should-cost on today's indices: expect an ask, and know how much of it is fair." : "Within 2% of should-cost.";
+    $("#sku-detail").innerHTML = `<p class="lbl">${esc(supById(q.sup).cat)} · per ${esc(p.unit)} · priced on ${mlabel(lastOf(p.mat)[0])} indices</p><h2>${esc(p.name)}</h2>
       ${opts.length > 1 ? `<p class="lbl" style="margin-top:10px">Supplier</p><div class="seg" role="group" aria-label="Supplier">${opts.map(o => `<button type="button" data-s="${o}" aria-pressed="${o === q.sup}">${esc(supById(o).name)}</button>`).join("")}</div>` : `<p class="small muted">${esc(supById(q.sup).name)}</p>`}
-      <div class="total"><div><span class="lbl">Paid</span><span class="fig">${inr(q.paid)}</span></div><div><span class="lbl">Should-cost</span><span class="fig">${inr(q.total)}</span></div><div class="em"><span class="lbl">Gap</span><span class="fig ${q.gap > 2 ? "up" : "down"}">${pct(q.gap)}</span></div></div>
+      <div class="total"><div><span class="lbl">Paid</span><span class="fig">${inr(q.paid)}</span></div><div><span class="lbl">Should-cost</span><span class="fig">${inr(q.total)}</span></div><div class="em"><span class="lbl">Gap</span><span class="fig ${gapCls(q.gap)}">${pct(q.gap)}</span></div></div>
+      <p class="small">${gapNote}</p>
       <div class="stack" aria-hidden="true">${BLOCKS.map(([k, , c]) => `<span style="width:${(q.now[k] / q.total * 100).toFixed(2)}%;background:${c}"></span>`).join("")}</div>
       <div class="legend">${BLOCKS.map(([k, n, c]) => `<i style="background:${c}"></i><span>${n}${k === "material" ? ` <span class="muted small">${pct((q.mr - 1) * 100)} since May</span>` : k === "energy" ? ` <span class="muted small">${pct((q.er - 1) * 100)} since May</span>` : ""}</span><span class="v">${inr(q.now[k])}</span><span class="v muted">${(q.now[k] / q.total * 100).toFixed(0)}%</span>`).join("")}</div>
-      <p class="note">Material re-prices on ${esc(S.series[p.mat].name)} (real), energy on EU natural gas (real), both from May. Indian grade prices are paid series; a client deployment uses the licensed feed. Block values are illustrative.</p>`;
-    $$("#sku-detail .seg button").forEach(b => b.addEventListener("click", () => movePack(p.id, b.dataset.s)));
+      <p class="note">Material re-prices on ${esc(S.series[p.mat].name)} (real), energy on EU natural gas (real), both from May. Block values are illustrative; a client deployment uses its own cost models and licensed grade feeds.</p>`;
+    $$("#sku-detail .seg button").forEach(b => b.addEventListener("click", () => moveItem(p.id, b.dataset.s)));
   }
-  function movePack(pid, sup) {
-    const p = packById(pid); S.pack = pid;
+  function moveItem(pid, sup) {
+    const p = itemById(pid); S.item = pid;
     if (sup === p.supplier) delete S.assign[pid]; else S.assign[pid] = sup;
-    renderPacks();
+    renderItems();
     if (sup !== p.supplier) toast(`${p.name} moved to ${supById(sup).name} in the plan. Purchase orders are not changed in the demo.`);
   }
 
   /* ---------- inbox ---------- */
   function renderMailList() {
-    const ord = ["kestrel-price", "corvel-tether", "kestrel-cap", "laminex-fm"];
+    const ord = ["sarna-price", "halden-review", "kestrel-cap", "laminex-fm"];
     $("#mail-list").innerHTML = D.mail.slice().sort((a, b) => ord.indexOf(a.id) - ord.indexOf(b.id)).map(m => `<li><button type="button" data-id="${m.id}" ${m.id === S.mail ? 'aria-current="true"' : ""}><span class="from">${esc(m.from)}</span><span class="subj">${esc(m.subj)}</span><span class="mono small muted">${esc(m.when)}</span></button></li>`).join("");
     $$("#mail-list button").forEach(b => b.addEventListener("click", () => { S.mail = b.dataset.id; renderMailList(); renderMail(); }));
   }
@@ -244,9 +241,9 @@
       let idx = null, just = 0, v, why = c.why || "";
       if (c.index) {
         idx = changeSince(c.index, BASE);
-        const used = Math.min(c.claimed, idx);
+        const used = Math.max(0, Math.min(c.claimed, idx));
         just = c.share * used / 100;
-        if (idx < 0) { v = ["v-no", "Not justified"]; why = `${S.series[c.index].name} is ${pct(idx)} since May (${valueAt(c.index, BASE)} to ${lastOf(c.index)[1].toFixed(1)}, ${mlabel(lastOf(c.index)[0])}). The block should come down.`; }
+        if (idx < 0) { v = ["v-no", "Not justified"]; const ser = S.series[c.index]; why = `${ser.name} is ${pct(idx)} since May (${fmtVal(ser, valueAt(c.index, BASE))} to ${fmtVal(ser, lastOf(c.index)[1])}, ${mlabel(lastOf(c.index)[0])}). The block should not rise.`; }
         else if (idx >= c.claimed) { v = ["v-yes", "Justified"]; why = `${S.series[c.index].name} is ${pct(idx)} since May, more than the ${c.claimed}% claimed. Accepted as claimed.`; }
         else { v = ["v-part", "Part-justified"]; why = `${S.series[c.index].name} is ${pct(idx)} since May against ${c.claimed}% claimed.`; }
       } else if (c.accept) { just = asked; v = ["v-yes", "Accepted"]; }
@@ -255,30 +252,45 @@
       return Object.assign({}, c, { asked, idx, just, v, why });
     });
   }
+  const r100 = n => Math.round(n / 100) * 100;
+  function replyLine(r) {
+    const d = r.driver.toLowerCase();
+    if (r.index) {
+      if (r.idx < 0) return `${r.ix} fell ${Math.abs(r.idx).toFixed(1)}% over that period, so the ${d} block should not rise.`;
+      if (r.idx >= r.claimed) return `${r.ix} rose more than the ${r.claimed}% you claim for ${d}, and we accept your figure.`;
+      return `${r.ix} rose ${r.idx.toFixed(1)}% over that period against the ${r.claimed}% you claim for ${d}; we accept ${r.idx.toFixed(1)}%.`;
+    }
+    if (r.accept) return `We accept ${d} at ${r.claimed}%.`;
+    if (r.reject) return `We cannot accept the ${d}, which is not a cost.`;
+    return `We will review ${d} when you send the lane invoices.`;
+  }
+  function checkTotals(m) {
+    const rows = claimCheck(m), asked = rows.reduce((a, r) => a + r.asked, 0), just = rows.reduce((a, r) => a + r.just, 0);
+    return { rows, asked, just, counter: r100(m.base * (1 + just / 100)), newPrice: r100(m.base * (1 + m.asked / 100)) };
+  }
   function renderMail() {
     const m = D.mail.find(x => x.id === S.mail);
     let html = `<p class="meta">${esc(m.when)} · ${esc(m.addr)}</p><h2>${esc(m.subj)}</h2><div class="letter">${m.letter.map(p => `<p>${p}</p>`).join("")}</div>`;
     if (m.claims) {
-      const rows = claimCheck(m), asked = rows.reduce((a, r) => a + r.asked, 0), just = rows.reduce((a, r) => a + r.just, 0);
-      const counter = m.base * (1 + just / 100), newPrice = m.base * (1 + m.asked / 100);
+      const { rows, asked, just, counter, newPrice } = checkTotals(m);
       html += `<section id="claim-check"><p class="lbl">Claim check · each driver against its index since May</p>
         <table class="tbl verdict"><thead><tr><th>Driver</th><th class="r">Share</th><th class="r">Claimed</th><th class="r">Index</th><th class="r">Asked</th><th class="r">Justified</th><th>Verdict</th></tr></thead><tbody>
         ${rows.map(r => `<tr title="${esc(r.why)}"><td>${esc(r.driver)}<div class="small muted">${esc(r.why)}</div></td><td class="r">${r.share === 100 ? "flat" : r.share + "%"}</td><td class="r">${pct(r.claimed, 0)}</td><td class="r">${r.idx == null ? "–" : pct(r.idx)}</td><td class="r">${pct(r.asked, 2)}</td><td class="r">${pct(r.just, 2)}</td><td class="${r.v[0]}">${r.v[1]}</td></tr>`).join("")}
         </tbody></table>
-        <div class="total"><div><span class="lbl">Asked</span><span class="fig up">${pct(asked)}</span><span class="small muted">${inr(m.base)} to ${inr(newPrice)}</span></div><div><span class="lbl">Cost-justified</span><span class="fig">${pct(just)}</span><span class="small muted">on real indices</span></div><div class="em"><span class="lbl">Counter</span><span class="fig">${inr(counter)}</span><span class="small muted">per 1,000</span></div></div>
-        <p class="note">Proxy: EU primary plastics PPI (real) and EU natural gas (real), May to latest. Indian PE grade prices are paid series; a client deployment uses the licensed feed.</p></section>
+        <div class="total"><div><span class="lbl">Asked</span><span class="fig up">${pct(asked)}</span><span class="small muted">${inr(m.base)} to ${inr(newPrice)}</span></div><div><span class="lbl">Cost-justified</span><span class="fig">${pct(just)}</span><span class="small muted">on real indices</span></div><div class="em"><span class="lbl">Counter</span><span class="fig">${inr(counter)}</span><span class="small muted">${esc(m.unit)}</span></div></div>
+        <p class="note">${esc(m.note)}</p></section>
         <section class="draft" id="draft"><p class="lbl">Reply drafted · awaiting your approval</p>
-        <pre>Dear Ravi,
+        <pre>${esc(m.greet)}
 
-Thank you for taking the extra tube volume at short notice.
+${esc(m.opener)}
 
-We have checked each driver in your letter against its public index since May. ${rows[0].idx<0?`Polymer prices fell ${Math.abs(rows[0].idx).toFixed(1)}% over that period, so the polymer block should come down, not up.`:`Polymer prices rose ${rows[0].idx.toFixed(1)}% over that period, less than the 9% you claim, and we accept that figure.`} Energy is up more than you claim and we accept your figure. We will review freight when you send the lane invoices, and we accept labour at 6%. We cannot accept the supply security surcharge, which is not a cost.
+We have checked each driver against its public index since May. ${rows.map(replyLine).join(" ")}
 
-That supports ${pct(just)}: ${inr(counter)} per 1,000 from 1 December. The workings are attached.
+That supports ${pct(just)}: ${inr(counter)} ${esc(m.unit)} from 1 December, against the ${pct(asked)} asked. The workings are attached.
 
 Regards,
-Category Manager, Packaging, Brightwater</pre>
-        <div class="approve"><button class="btn btn--ember" type="button" id="approve" ${S.approved ? "disabled" : ""}>${S.approved ? "Approved" : "Approve and send"}</button><button class="btn" type="button" id="edit-draft">Edit</button><span class="small muted">Attachment: claim-check-kestrel-abl-tube.xlsx</span></div></section>`;
+${esc(m.sign)}</pre>
+        <div class="approve"><button class="btn btn--ember" type="button" id="approve" ${S.approved ? "disabled" : ""}>${S.approved ? "Approved" : "Approve and send"}</button><button class="btn" type="button" id="edit-draft">Edit</button><span class="small muted">Attachment: ${esc(m.attach)}</span></div></section>`;
     }
     $("#mail").innerHTML = html;
     const ap = $("#approve");
@@ -287,18 +299,29 @@ Category Manager, Packaging, Brightwater</pre>
     if (ed) ed.addEventListener("click", () => { const pre = $("#draft pre"); pre.contentEditable = "true"; pre.focus(); toast("Edit the draft, then approve."); });
   }
 
-  /* ---------- rivals & radar ---------- */
-  function renderRivals() {
-    $("#rivals").innerHTML = D.rivals.map((r, i) => `<article class="card" id="r-${i}"><p class="lbl">Demo brand</p><h2>${esc(r.name)}</h2><ul class="small">${r.moves.map(m => `<li><span class="mono muted">${esc(m[0])}</span> ${esc(m[1])}</li>`).join("")}</ul></article>`).join("");
+  /* ---------- index watch ---------- */
+  function watchRows(list, sign) {
+    return list.map(w => { const c = changeSince(w.index, BASE); return Object.assign({}, w, { c, val: w.spend * w.share / 100 * Math.abs(c) / 100, live: sign * c > 0 }); });
   }
-  function renderRadarFilters() {
-    $("#radar-filters").innerHTML = ["All", "Innovation", "Technology"].map(k => `<button type="button" aria-pressed="${k === S.radarFilter}">${k}</button>`).join("");
-    $$("#radar-filters button").forEach(b => b.addEventListener("click", () => { S.radarFilter = b.textContent; renderRadarFilters(); renderRadar(); }));
+  function tally() {
+    const down = watchRows(D.watch.down, -1), up = watchRows(D.watch.up, 1);
+    const m = D.mail.find(x => x.claims), t = checkTotals(m), sup = supById(m.supplier);
+    return { down, up, recover: down.filter(r => r.live).reduce((a, r) => a + r.val, 0), expect: up.filter(r => r.live).reduce((a, r) => a + r.val, 0),
+      held: sup.spend * (t.asked - t.just) / 100, just: inr(t.counter) + " " + m.unit, brent: down.find(r => r.index === "brent").val };
   }
-  function renderRadar() {
-    $("#radar").innerHTML = D.radar.filter(r => S.radarFilter === "All" || r.kind === S.radarFilter).map((r, i) => `<article class="card" id="rd-${i}">
-      <div class="row"><p class="lbl">${esc(r.area)}</p><span class="mono small stage-${r.stage}">${r.stage.toUpperCase()}</span></div>
-      <h3>${esc(r.name)}</h3><p class="mono small">${esc(r.effect)}</p><p class="small muted">${esc(r.note)}</p></article>`).join("");
+  function watchTable(rows, id, head, totalLbl, total) {
+    return `<table class="tbl" id="${id}"><thead><tr><th>${head}</th><th>Index since May</th><th class="r">Spend a year</th><th class="r">Linked</th><th class="r">${totalLbl}</th></tr></thead><tbody>
+      ${rows.map(r => { const ser = S.series[r.index]; return `<tr><td>${esc(r.name)}<div class="small muted">${esc(supById(r.supplier).name)}</div></td><td class="small">${esc(ser.name.replace(/, producer prices$/, ""))} <span class="mono ${r.c > 0 ? "up" : "down"}">${pct(r.c)}</span></td><td class="r">${crore(r.spend)}</td><td class="r">${r.share}%</td><td class="r">${r.live ? crore(r.val) : "–"}</td></tr>`; }).join("")}
+      <tr><td colspan="4"><b>Total</b></td><td class="r"><b>${crore(total)}</b></td></tr></tbody></table>`;
+  }
+  function renderWatch() {
+    const t = tally();
+    $("#watch").innerHTML = `<div class="total" id="tally"><div><span class="lbl">Supply</span><span class="fig">Covered</span><span class="small muted">Toothpaste tube on Kestrel</span></div><div><span class="lbl">Held off this week</span><span class="fig">${crore(t.held)}</span><span class="small muted">a year, SLES claim check</span></div><div class="em"><span class="lbl">To recover</span><span class="fig">${crore(t.recover)}</span><span class="small muted">a year, from falling indices</span></div></div>
+      <p class="lbl" style="margin-top:18px">Prices to bring down · set in May, index fallen since</p>
+      ${watchTable(t.down, "watch-down", "Contract", "Recoverable a year", t.recover)}
+      <p class="lbl" style="margin-top:22px">Asks to expect · set in May, index risen since</p>
+      ${watchTable(t.up, "watch-up", "Contract", "Exposure a year", t.expect)}
+      <p class="note">Value = annual spend × the share of the price linked to the index × the index change since May. Indices are real; spend and links are demo figures.</p>`;
   }
 
   /* ---------- toast, clock, tour ---------- */
@@ -316,26 +339,29 @@ Category Manager, Packaging, Brightwater</pre>
     if (a[0] === "series") selectSeries(a[1]);
     if (a[0] === "flash") { S.wireFilter = "All"; renderWireFilters(); renderWire(a[1]); }
     if (a[0] === "filter" && $("#s-wire").hidden === false) { S.wireFilter = a[1]; renderWireFilters(); renderWire(); }
-    if (a[0] === "filter" && $("#s-radar").hidden === false) { S.radarFilter = a[1]; renderRadarFilters(); renderRadar(); }
     if (a[0] === "supplier") { S.supplier = a[1]; renderSuppliers(); }
-    if (a[0] === "move") { S.pack = a[1]; renderPacks(); setTimeout(() => movePack(a[1], a[2]), 700); }
+    if (a[0] === "move") { S.item = a[1]; renderItems(); setTimeout(() => moveItem(a[1], a[2]), 700); }
     if (a[0] === "mail") { S.mail = a[1]; renderMailList(); renderMail(); }
+  }
+  function fill(txt) {
+    const t = tally();
+    return txt.replace("{held}", crore(t.held)).replace("{recover}", crore(t.recover)).replace("{brent}", crore(t.brent)).replace("{just}", t.just);
   }
   function step(i) {
     $$(".hl").forEach(e => e.classList.remove("hl"));
     const st = D.tour[i]; S.touring = i;
     show(st.screen); act(st.act);
     $("#tour").hidden = false;
-    $("#tour-when").textContent = st.when; $("#tour-text").textContent = st.text;
+    $("#tour-when").textContent = st.when; $("#tour-text").textContent = fill(st.text);
     $("#tour-n").textContent = (i + 1) + " / " + D.tour.length;
     $("#clock").textContent = st.when.replace(/^(\w{3})\w*day/, "$1").replace(",", "") + " IST";
     $("#tour-prev").disabled = i === 0;
     $("#tour-next").textContent = i === D.tour.length - 1 ? "Finish" : "Next";
-    setTimeout(() => { const el = $(st.hl); if (el) { el.classList.add("hl"); el.scrollIntoView({ block: "center", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }); } }, 120);
+    setTimeout(() => { $$(".hl").forEach(e => e.classList.remove("hl")); const el = $(st.hl); if (el) { el.classList.add("hl"); el.scrollIntoView({ block: "center", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }); } }, 120);
   }
   function endTour() { $$(".hl").forEach(e => e.classList.remove("hl")); $("#tour").hidden = true; S.touring = -1; tick(); $("#tour-btn").focus(); }
   $("#tour-btn").addEventListener("click", () => {
-    S.assign = {}; S.approved = false; S.wireFilter = "All"; S.radarFilter = "All"; renderWireFilters(); renderRadarFilters(); renderRadar(); renderPacks(); step(0); $("#tour-next").focus();
+    S.assign = {}; S.approved = false; S.wireFilter = "All"; renderWireFilters(); renderWire(); renderItems(); renderMail(); step(0); $("#tour-next").focus();
   });
   $("#tour-next").addEventListener("click", () => S.touring < D.tour.length - 1 ? step(S.touring + 1) : endTour());
   $("#tour-prev").addEventListener("click", () => S.touring > 0 && step(S.touring - 1));

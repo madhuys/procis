@@ -1,10 +1,11 @@
 /* Procis Terminal demo data.
-   Brightwater, its suppliers, competitors and every event not marked real are fictional.
+   Brightwater, its suppliers and every event not marked real are fictional.
    Index series come from data/markets.json (real public data, fetched at build time).
-   Prices per 1,000 packs in INR are illustrative. */
+   Prices and cost blocks in INR are illustrative. */
 window.DEMO = {
   client: "Brightwater Consumer Goods",
-  baseMonth: "2026-05-01", // the month suppliers' "May price" was set; should-cost re-prices from here
+  baseMonth: "2026-05-01", // the month most supplier prices were last set; should-cost re-prices from here
+  totalSpend: 520, // addressable spend, INR crore a year
 
   // Real freight snapshot (Drewry World Container Index, 12 Nov 2026)
   freight: {
@@ -15,74 +16,72 @@ window.DEMO = {
     note: "Drewry expects rates to fall further next week. A weekly snapshot, not a series: a client deployment takes the licensed weekly feed."
   },
 
-  // Illustrative grade prices: shaped on a real index, scaled to a grade level. Labelled as such everywhere.
-  illustrative: [
-    { id: "hdpe-in", name: "HDPE blow-moulding grade, India", unit: "INR per kg", group: "Feedstocks", from: "plastics-eu", level: 112 },
-    { id: "pet-asia", name: "PET bottle grade, Asia", unit: "USD per tonne", group: "Feedstocks", from: "plastics-eu", level: 1030 },
-    { id: "duplex-in", name: "Duplex board, India", unit: "INR per tonne", group: "Feedstocks", from: "paper-eu", level: 52000 }
-  ],
-  tilesOrder: ["plastics-eu", "hdpe-in", "pet-asia", "pkg-plastic-eu", "resins-us", "paper-eu", "duplex-in", "board-us", "brent", "gas-eu", "wci", "eurinr", "usdinr"],
+  illustrative: [],
+  tilesOrder: ["sugar", "palm", "wheat", "cocoa", "chem-eu", "plastics-eu", "paper-eu", "brent", "gas-eu", "wci", "usdinr", "eurinr"],
 
+  // spend in INR crore a year
   suppliers: [
-    { id: "laminex", name: "Laminex Tubes", makes: "Laminated tubes (ABL, PBL)", share: 24, plant: "Silvassa", status: ["bad", "Fire, line 3"],
-      detail: "Two tube lines in Silvassa. Line 3 makes ABL toothpaste tubes and all PBL face wash tubes.",
-      exposure: [["toothpaste", 70, 3.5], ["facewash", 100, 2]] },
-    { id: "kestrel", name: "Kestrel Packaging", makes: "Tubes and HDPE bottles", share: 21, plant: "Daman", status: ["ok", "Spare tube capacity"],
-      detail: "Qualified on ABL and PBL tubes since 2025. Has about 6 million tubes a month of spare capacity.",
-      exposure: [["toothpaste", 30, 6], ["shampoo", 100, 5]] },
-    { id: "polyvia", name: "Polyvia Packaging", makes: "PET bottles", share: 17, plant: "Vapi", status: ["ok", "Normal"],
-      detail: "Single source for PET. Second source in qualification.", exposure: [["handwash", 100, 4]] },
-    { id: "boxwell", name: "Boxwell Corrugators", makes: "Shipper cartons", share: 18, plant: "Pune", status: ["ok", "Normal"],
+    { id: "tidewater", name: "Tidewater Edible Oils", cat: "Ingredients", makes: "Refined palm oil", spend: 78, plant: "Kakinada", status: ["ok", "Normal"],
+      detail: "Main oil supplier for biscuits and snacks. Price resets monthly on the palm index.", exposure: [["palm", 60, 5]] },
+    { id: "sarna", name: "Sarna Oleochem", cat: "Chemicals", makes: "Surfactants (SLES, LAS)", spend: 55, plant: "Kandla", status: ["mid", "Price letter"],
+      detail: "Palm-based surfactants for detergents, shampoo and hand wash. Price last set in May.", exposure: [["sles", 100, 4]] },
+    { id: "harbourline", name: "Harbourline Logistics", cat: "Logistics", makes: "Road distribution, port forwarding", spend: 42, plant: "Nhava Sheva", status: ["ok", "Normal"],
+      detail: "Primary distribution from four plants to 22 depots. Road rates carry a diesel-linked fuel component set in May.", exposure: [] },
+    { id: "halden", name: "Halden Sugars", cat: "Ingredients", makes: "Refined sugar", spend: 40, plant: "Kolhapur", status: ["ok", "Normal"],
+      detail: "Sugar for biscuits and beverages. Contract price set in May; quarterly review in December.", exposure: [["sugar", 70, 6]] },
+    { id: "aldane", name: "Aldane Aromatics", cat: "Chemicals", makes: "Fragrance compounds", spend: 36, plant: "Mumbai", status: ["ok", "Normal"],
+      detail: "Imported fragrance compounds, priced to Brightwater in rupees from a euro list at the May exchange rate.", exposure: [["fragrance", 100, 10]] },
+    { id: "stonemill", name: "Stonemill Foods", cat: "Ingredients", makes: "Wheat flour", spend: 30, plant: "Indore", status: ["ok", "Normal"],
+      detail: "Flour for the biscuit lines. Single source; a second mill is in qualification.", exposure: [["flour", 100, 3]] },
+    { id: "boxwell", name: "Boxwell Corrugators", cat: "Packaging", makes: "Shipper cartons", spend: 22, plant: "Pune", status: ["ok", "Normal"],
       detail: "Corrugated for all categories. Board indexed to paper prices each quarter.", exposure: [["shipper", 100, 3]] },
-    { id: "tessa", name: "Tessa Brush Co.", makes: "Toothbrushes", share: 11, plant: "Hosur", status: ["ok", "Normal"],
-      detail: "Moulded and tufted brushes.", exposure: [["toothbrush", 100, 8]] },
-    { id: "corvel", name: "Corvel Closures", makes: "Caps and closures", share: 9, plant: "Baddi", status: ["mid", "Inspection Thu"],
-      detail: "Flip-top and tethered caps. State board inspection booked for Thursday.", exposure: [["cap", 100, 5]] }
+    { id: "laminex", name: "Laminex Tubes", cat: "Packaging", makes: "Toothpaste tubes", spend: 20, plant: "Silvassa", status: ["bad", "Fire, line 3"],
+      detail: "Two tube lines in Silvassa. Line 3 makes the 100 g toothpaste tube.", exposure: [["toothpaste", 70, 3.5]] },
+    { id: "kestrel", name: "Kestrel Packaging", cat: "Packaging", makes: "Tubes and bottles", spend: 18, plant: "Daman", status: ["ok", "Spare capacity"],
+      detail: "Qualified on the toothpaste tube since 2025. About 6 million tubes a month of spare capacity.", exposure: [["toothpaste", 30, 6]] }
   ],
 
-  // Should-cost per 1,000 packs (INR) at the base month, by block. Material and energy re-price on their index.
-  packs: [
-    { id: "toothpaste", name: "Toothpaste 100 g, ABL tube", supplier: "laminex", paid: 4180, mat: "plastics-eu",
+  // Should-cost at the base month, INR, by block. Material re-prices on its index, energy on EU gas.
+  items: [
+    { id: "palm", name: "Refined palm oil", unit: "tonne", supplier: "tidewater", paid: 124500, mat: "palm",
+      blocks: { material: 104000, conversion: 6500, energy: 2200, freight: 3200, overhead: 3000, margin: 4000 } },
+    { id: "sles", name: "SLES 70%, surfactant", unit: "tonne", supplier: "sarna", paid: 118000, mat: "palm",
+      blocks: { material: 72000, conversion: 16000, energy: 6500, freight: 4500, overhead: 9000, margin: 9000 } },
+    { id: "sugar", name: "Refined sugar", unit: "tonne", supplier: "halden", paid: 43800, mat: "sugar",
+      blocks: { material: 36000, conversion: 2500, energy: 900, freight: 1500, overhead: 1200, margin: 1400 } },
+    { id: "flour", name: "Wheat flour", unit: "tonne", supplier: "stonemill", paid: 31500, mat: "wheat",
+      blocks: { material: 25500, conversion: 2200, energy: 800, freight: 1100, overhead: 900, margin: 1000 } },
+    { id: "fragrance", name: "Fragrance compound, soap", unit: "kg", supplier: "aldane", paid: 2650, mat: "eurinr",
+      blocks: { material: 1700, conversion: 300, energy: 40, freight: 90, overhead: 260, margin: 230 } },
+    { id: "toothpaste", name: "Toothpaste tube, 100 g", unit: "1,000", supplier: "laminex", paid: 4180, mat: "plastics-eu",
       blocks: { material: 1650, conversion: 1050, energy: 260, freight: 170, overhead: 420, margin: 380 },
-      alt: { kestrel: { paid: 4050, conversion: 1000, freight: 190 } } },
-    { id: "facewash", name: "Face wash 50 g, PBL tube", supplier: "laminex", paid: 3240, mat: "plastics-eu",
-      blocks: { material: 1180, conversion: 900, energy: 210, freight: 140, overhead: 330, margin: 300 },
-      alt: { kestrel: { paid: 3150, conversion: 870, freight: 160 } } },
-    { id: "shampoo", name: "Shampoo 340 ml, HDPE bottle", supplier: "kestrel", paid: 6900, mat: "plastics-eu",
-      blocks: { material: 3300, conversion: 1450, energy: 520, freight: 380, overhead: 640, margin: 560 } },
-    { id: "handwash", name: "Hand wash 200 ml, PET bottle", supplier: "polyvia", paid: 5400, mat: "plastics-eu",
-      blocks: { material: 2600, conversion: 1100, energy: 400, freight: 300, overhead: 520, margin: 450 } },
-    { id: "cap", name: "24 mm flip-top cap, PP", supplier: "corvel", paid: 1420, mat: "plastics-eu",
-      blocks: { material: 560, conversion: 420, energy: 120, freight: 60, overhead: 120, margin: 100 } },
-    { id: "shipper", name: "5-ply shipper carton", supplier: "boxwell", paid: 38500, mat: "paper-eu",
-      blocks: { material: 21000, conversion: 7500, energy: 2400, freight: 2200, overhead: 2600, margin: 2300 } },
-    { id: "toothbrush", name: "Toothbrush, PP handle", supplier: "tessa", paid: 7800, mat: "plastics-eu",
-      blocks: { material: 2100, conversion: 3300, energy: 450, freight: 300, overhead: 900, margin: 650 } }
+      alt: { kestrel: { paid: 4030, conversion: 1000, freight: 190 } } },
+    { id: "shipper", name: "Shipper carton, 5-ply", unit: "1,000", supplier: "boxwell", paid: 38500, mat: "paper-eu",
+      blocks: { material: 21000, conversion: 7500, energy: 2400, freight: 2200, overhead: 2600, margin: 2300 } }
   ],
 
   wire: [
-    { id: "fire", when: "Mon 16 Nov 08:10", sev: "high", kind: "Plants", demo: true,
+    { id: "fire", when: "Mon 16 Nov 08:10", sev: "high", kind: "Plants",
       title: "Fire at Laminex Tubes, Silvassa, line 3",
-      body: "No injuries reported. Line 3 is stopped; Laminex expects two to three weeks before restart. Line 3 makes ABL toothpaste tubes and all PBL face wash tubes.",
-      links: [["supplier", "laminex", "Laminex exposure"], ["pack", "toothpaste", "Toothpaste tube"], ["pack", "facewash", "Face wash tube"]] },
-    { id: "gas", when: "Mon 16 Nov 07:00", sev: "med", kind: "Markets", computed: "gas",
-      title: "EU gas price up since May",
-      body: "", links: [["series", "gas-eu", "EU natural gas"]] },
-    { id: "resin", when: "Mon 16 Nov 07:00", sev: "low", kind: "Markets", computed: "resin",
-      title: "EU primary plastics below its May level",
-      body: "", links: [["series", "plastics-eu", "EU primary plastics"]] },
-    { id: "cyclone", when: "Sun 15 Nov 18:30", sev: "med", kind: "Weather", demo: true,
+      body: "No injuries reported. Line 3 is stopped; Laminex expects two to three weeks before restart. Line 3 makes Brightwater's 100 g toothpaste tube.",
+      links: [["supplier", "laminex", "Laminex exposure"], ["item", "toothpaste", "Toothpaste tube"]] },
+    { id: "sugar", when: "Mon 16 Nov 07:00", sev: "med", kind: "Markets", computed: "sugar",
+      note: "Halden's price was set in May. Expect an ask at the December review; it will be checked against this index.",
+      links: [["series", "sugar", "Sugar"], ["supplier", "halden", "Halden Sugars"]] },
+    { id: "brent", when: "Mon 16 Nov 07:00", sev: "med", kind: "Markets", computed: "brent",
+      note: "Diesel-linked rates set in May should now come down.",
+      links: [["series", "brent", "Brent"], ["screen", "watch", "Index watch"]] },
+    { id: "gas", when: "Mon 16 Nov 07:00", sev: "low", kind: "Markets", computed: "gas-eu",
+      note: "Energy blocks in every should-cost re-price on it.",
+      links: [["series", "gas-eu", "EU natural gas"]] },
+    { id: "cyclone", when: "Sun 15 Nov 18:30", sev: "med", kind: "Weather",
       title: "Cyclone watch off the Gujarat coast",
-      body: "A depression in the Arabian Sea may bring heavy rain to the Daman and Vapi belt from Thursday. Truck movements could slow for two days.",
-      links: [["supplier", "kestrel", "Kestrel, Daman"], ["supplier", "polyvia", "Polyvia, Vapi"]] },
-    { id: "baddi", when: "Fri 13 Nov 16:00", sev: "low", kind: "Policy", demo: true,
-      title: "Pollution board inspections in the Baddi cluster",
-      body: "The state board is inspecting moulding units in Baddi this month. Corvel's slot is Thursday.",
-      links: [["supplier", "corvel", "Corvel Closures"]] },
-    { id: "orrin", when: "Fri 13 Nov 10:00", sev: "low", kind: "Competitors", demo: true,
-      title: "Orrin Home Care moves its toothpaste to an all-PE tube",
-      body: "Orrin's relaunch drops the aluminium layer for a recyclable all-PE laminate, with a recyclable claim on pack.",
-      links: [["screen", "rivals", "Competitors"], ["screen", "radar", "Radar"]] },
+      body: "A depression in the Arabian Sea may bring heavy rain to the Kandla and Daman belt from Thursday. Truck movements could slow for two days.",
+      links: [["supplier", "sarna", "Sarna, Kandla"], ["supplier", "kestrel", "Kestrel, Daman"]] },
+    { id: "inspect", when: "Fri 13 Nov 16:00", sev: "low", kind: "Policy",
+      title: "Pollution board inspections in the Kandla chemical cluster",
+      body: "The state board is inspecting chemical units around Kandla this month. Sarna's slot is Thursday.",
+      links: [["supplier", "sarna", "Sarna Oleochem"]] },
     { id: "wci", when: "Thu 12 Nov", sev: "low", kind: "Shipping", real: true,
       title: "Container rates fall 2% to $4,305 per 40ft",
       body: "Drewry's World Container Index fell 2% this week. Shanghai to Rotterdam fell 3% to $3,504; Shanghai to Genoa held at $4,168. Drewry expects rates to fall further next week.",
@@ -101,77 +100,72 @@ window.DEMO = {
   ],
 
   mail: [
-    { id: "kestrel-price", from: "Ravi Menon, Kestrel Packaging", addr: "ravi.menon@kestrel.example.com", when: "Wed 18 Nov 11:20",
-      subj: "Revised tube prices from 1 December", pack: "toothpaste", supplier: "kestrel", base: 4050, asked: 8.4,
+    { id: "sarna-price", from: "Farhan Sheikh, Sarna Oleochem", addr: "farhan.sheikh@sarna.example.com", when: "Wed 18 Nov 11:20",
+      subj: "Revised SLES price from 1 December", item: "sles", supplier: "sarna", base: 118000, asked: 9.41, unit: "per tonne",
+      greet: "Dear Farhan,", opener: "Thank you for your letter of 18 November.", sign: "Category Manager, Chemicals, Brightwater",
+      attach: "claim-check-sarna-sles.xlsx",
+      note: "Proxies: palm oil (IMF, real), EU organic basic chemicals PPI (Eurostat, real) and EU natural gas (IMF, real), May to latest. A client deployment uses the licensed grade feeds.",
       letter: [
         "Dear Brightwater team,",
-        "Thank you for the additional toothpaste tube volume this week. We can run it from Daman from Monday.",
-        "Since our May price, our costs have risen sharply. From 1 December the 100 g ABL tube moves from ₹4,050 to ₹4,390 per 1,000, an increase of 8.4%.",
-        "The drivers, by share of our price: <mark>polymer up 9% (34% of price)</mark>, energy up 30% (7%), freight up 15% (4%), labour up 6% (10%), and a 2% supply security surcharge given the current tightness in tubes.",
+        "Since our May price, input costs for surfactants have risen across the board. From 1 December SLES 70% moves from ₹1,18,000 to ₹1,29,100 per tonne, an increase of 9.4%.",
+        "The drivers, by share of our price: <mark>palm feedstock up 9% (45% of price)</mark>, ethylene oxide and other chemicals up 6% (15%), energy up 25% (6%), freight up 12% (4%), labour up 6% (8%), and a 2% supply security surcharge given the current tightness in surfactants.",
         "We value the partnership and look forward to your confirmation.",
-        "Ravi Menon, Key Accounts"
+        "Farhan Sheikh, Key Accounts"
       ],
       claims: [
-        { driver: "Polymer", share: 34, claimed: 9, index: "plastics-eu" },
-        { driver: "Energy", share: 7, claimed: 30, index: "gas-eu" },
-        { driver: "Freight", share: 4, claimed: 15, index: null, why: "No May baseline for this lane in the free feed. Counted at zero until Kestrel's lane invoices arrive." },
-        { driver: "Labour", share: 10, claimed: 6, index: null, accept: true, why: "Within the wage settlement range on file. Accepted as claimed." },
+        { driver: "Palm feedstock", share: 45, claimed: 9, index: "palm", ix: "Palm oil prices" },
+        { driver: "Chemicals", share: 15, claimed: 6, index: "chem-eu", ix: "EU organic basic chemical prices" },
+        { driver: "Energy", share: 6, claimed: 25, index: "gas-eu", ix: "Gas prices" },
+        { driver: "Freight", share: 4, claimed: 12, index: null, why: "No May baseline for this lane in the free feed. Counted at zero until Sarna's lane invoices arrive." },
+        { driver: "Labour", share: 8, claimed: 6, index: null, accept: true, why: "Within the wage settlement range on file. Accepted as claimed." },
         { driver: "Supply security surcharge", share: 100, claimed: 2, index: null, reject: true, why: "Not a cost. A surcharge for a tight market is a margin ask." }
       ] },
-    { id: "laminex-fm", from: "Anita Desai, Laminex Tubes", addr: "anita.desai@laminex.example.com", when: "Mon 16 Nov 09:40",
-      subj: "Line 3 incident: force majeure notice",
-      letter: ["Dear Brightwater team,", "Following the fire on line 3 this morning we are giving notice of force majeure on ABL and PBL tubes from line 3. We expect to restart in two to three weeks and will update you daily.", "Anita Desai, Customer Service"] },
     { id: "kestrel-cap", from: "Ravi Menon, Kestrel Packaging", addr: "ravi.menon@kestrel.example.com", when: "Mon 16 Nov 13:05",
       subj: "Re: Extra tube capacity",
-      letter: ["Confirmed: we can take 2.4 million ABL tubes and 1.1 million PBL tubes a month from Monday 23 November at the current price list.", "Ravi"] },
-    { id: "corvel-tether", from: "Imran Qureshi, Corvel Closures", addr: "imran.q@corvel.example.com", when: "Tue 17 Nov 15:15",
-      subj: "Tethered cap quote, 24 mm",
-      letter: ["As discussed, the tethered version of the 24 mm flip-top would be ₹1,540 per 1,000 against ₹1,420 today, with a new tool at ₹18 lakh.", "Imran"] }
+      letter: ["Confirmed: we can take 2.4 million toothpaste tubes a month from Monday 23 November at the current price list.", "Ravi"] },
+    { id: "laminex-fm", from: "Anita Desai, Laminex Tubes", addr: "anita.desai@laminex.example.com", when: "Mon 16 Nov 09:40",
+      subj: "Line 3 incident: force majeure notice",
+      letter: ["Dear Brightwater team,", "Following the fire on line 3 this morning we are giving notice of force majeure on tubes from line 3. We expect to restart in two to three weeks and will update you daily.", "Anita Desai, Customer Service"] },
+    { id: "halden-review", from: "Meera Patil, Halden Sugars", addr: "meera.patil@halden.example.com", when: "Tue 17 Nov 10:30",
+      subj: "December price review: meeting request",
+      letter: ["Dear Brightwater team,", "Ahead of the December review we would like to meet in the first week of the month to discuss the sugar price.", "Meera Patil, Sales"] }
   ],
 
-  rivals: [
-    { name: "Orrin Home Care", moves: [["13 Nov", "Toothpaste relaunch in an all-PE recyclable tube, aluminium layer dropped."], ["Oct", "Shampoo 340 ml cut to 320 ml at the same shelf price."]] },
-    { name: "Vasant Naturals", moves: [["Nov", "Refill pouches for hand wash, 750 ml, in two cities."], ["Sep", "Glass to PET switch on its hair oil, 30% lighter."]] },
-    { name: "Kairo", moves: [["Nov", "Digitally printed limited-edition tubes, 12 designs, short runs."]] },
-    { name: "Maison Lys", moves: [["Oct", "Tethered caps across the premium range ahead of its export markets."]] },
-    { name: "Seva Herbals", moves: [["Nov", "Mono-material PP toothbrush pack, card insert removed."], ["Aug", "Shipper carton down from 5-ply to 3-ply on light SKUs."]] }
-  ],
-
-  radar: [
-    { area: "Laminated and plastic tubes", kind: "Innovation", name: "All-PE recyclable tube laminate", stage: "trial", effect: "+2 to +4% per tube today; removes aluminium exposure", note: "Orrin has moved. Kestrel can sample in four weeks. A trial on face wash first, where barrier needs are lower." },
-    { area: "Laminate structures", kind: "Innovation", name: "Thinner barrier layers in ABL", stage: "watch", effect: "-3% material per tube", note: "Needs shelf-life tests on the toothpaste formula." },
-    { area: "Bottles", kind: "Innovation", name: "Lightweighted HDPE shampoo bottle", stage: "adopt", effect: "-6% resin per bottle", note: "Kestrel tool change in the Q1 shutdown." },
-    { area: "Bottles", kind: "Innovation", name: "Recycled PET in hand wash bottles", stage: "watch", effect: "Premium varies with food-grade rPET supply", note: "Track rPET grade prices before any commitment." },
-    { area: "Caps and closures", kind: "Innovation", name: "Tethered caps", stage: "trial", effect: "+8% per cap and a new tool", note: "Corvel quote in the inbox. Needed for export lines first." },
-    { area: "Corrugated", kind: "Innovation", name: "3-ply shippers for light SKUs", stage: "adopt", effect: "-12% board per shipper", note: "Drop tests passed on two SKUs." },
-    { area: "Sustainable packaging", kind: "Innovation", name: "Refill pouches", stage: "watch", effect: "-40% pack material per litre", note: "A competitor is testing in two cities." },
-    { area: "Mould design", kind: "Technology", name: "Higher-cavity cap moulds", stage: "trial", effect: "-5% conversion per cap", note: "Ask Corvel to cost a 48 to 64 cavity move." },
-    { area: "Moulding machines", kind: "Technology", name: "All-electric injection presses", stage: "watch", effect: "-20 to -30% press energy", note: "Energy is the block rising fastest since May." },
-    { area: "Filling lines", kind: "Technology", name: "Tube filler changeover in under 15 minutes", stage: "watch", effect: "More short runs without waste", note: "Pairs with digital tube printing." },
-    { area: "End of line automation", kind: "Technology", name: "Robotic case packing", stage: "watch", effect: "Labour per shipper down", note: "Payback depends on line speed." },
-    { area: "Printing on packaging", kind: "Technology", name: "Digital tube printing", stage: "trial", effect: "No plates; +1 to +3% per tube on short runs", note: "Kairo is using it for limited editions." }
-  ],
+  // Index watch: spend in INR crore a year, share = the part of the price linked to the index
+  watch: {
+    down: [
+      { name: "Road distribution, fuel component", supplier: "harbourline", spend: 42, share: 35, index: "brent" },
+      { name: "Fragrance compounds, euro list", supplier: "aldane", spend: 36, share: 70, index: "eurinr" },
+      { name: "Toothpaste tube, polymer", supplier: "kestrel", spend: 18, share: 40, index: "plastics-eu" },
+      { name: "SLES, chemicals block", supplier: "sarna", spend: 55, share: 15, index: "chem-eu" }
+    ],
+    up: [
+      { name: "Refined sugar", supplier: "halden", spend: 40, share: 82, index: "sugar" },
+      { name: "Wheat flour", supplier: "stonemill", spend: 30, share: 81, index: "wheat" },
+      { name: "Shipper cartons, board", supplier: "boxwell", spend: 22, share: 55, index: "paper-eu" }
+    ]
+  },
 
   tour: [
-    { when: "Monday 16 November, 07:30", screen: "markets", act: ["series", "plastics-eu"], hl: "#chart",
-      text: "The week opens on the indices behind every pack. EU primary plastics peaked in May and has come down since. Energy has gone the other way." },
+    { when: "Monday 16 November, 07:30", screen: "markets", act: ["series", "sugar"], hl: "#chart",
+      text: "The week opens on the indices behind everything Brightwater buys: ingredients, chemicals, packaging, energy, freight and currency. Sugar is up a fifth since May. Palm oil has barely moved." },
     { when: "Monday, 08:10", screen: "wire", act: ["flash", "fire"], hl: "#w-fire",
-      text: "A fire at Laminex, line 3. The terminal maps it at once to the supplier, the plant and the two packs that line makes." },
+      text: "A fire at Laminex Tubes stops the line that makes the toothpaste tube. The terminal maps it at once to the supplier, the plant and the item." },
     { when: "Monday, 08:14", screen: "suppliers", act: ["supplier", "laminex"], hl: "#sup-detail",
-      text: "Laminex's exposure: 70% of the toothpaste tube and all of the face wash tube, with two to three and a half weeks of cover." },
+      text: "Laminex makes 70% of the tube, with three and a half weeks of cover. Kestrel is already qualified and has spare capacity." },
     { when: "Monday, 09:00", screen: "cost", act: ["move", "toothpaste", "kestrel"], hl: "#sku-detail",
-      text: "Move the toothpaste tube to Kestrel, which has spare capacity. Re-priced on today's indices, Kestrel's quote sits close to should-cost." },
-    { when: "Monday, 09:05", screen: "wire", act: ["filter", "Shipping"], hl: "#wire",
-      text: "Freight is easing: Drewry's index fell 2% last week and it expects more. Real items carry their source." },
-    { when: "Wednesday 18 November, 11:20", screen: "inbox", act: ["mail", "kestrel-price"], hl: ".letter",
-      text: "Two days later Kestrel asks for 8.4% more, \"since our May price\", with polymer up 9%." },
-    { when: "Wednesday, 11:21", screen: "inbox", act: ["mail", "kestrel-price"], hl: "#claim-check",
-      text: "The claim check reads each driver against its index since May. Polymer is down, not up. Energy is up more than claimed. The surcharge is not a cost." },
-    { when: "Thursday 19 November, 10:00", screen: "inbox", act: ["mail", "kestrel-price"], hl: "#draft",
-      text: "The counter-offer is drafted with the evidence attached. Nothing reaches Kestrel until a person approves it." },
-    { when: "Thursday 19 November, 15:30", screen: "rivals", act: null, hl: "#r-0",
-      text: "On the competitor screen: Orrin moved its toothpaste to an all-PE recyclable tube last week, with a recyclable claim on pack." },
-    { when: "Friday 20 November, 09:00", screen: "radar", act: ["filter", "Innovation"], hl: "#rd-0",
-      text: "The radar costs the same move for Brightwater: an all-PE tube trial, face wash first. The week, on one screen. Every price, proven." }
+      text: "Move the tube to Kestrel. Re-priced on today's indices, Kestrel's quote sits close to should-cost. Supply covered before lunch." },
+    { when: "Monday, 09:05", screen: "wire", act: ["filter", "Markets"], hl: "#w-sugar",
+      text: "The wire reads the indices too. Sugar is up since Halden's May price, so the ask is flagged before it arrives." },
+    { when: "Wednesday 18 November, 11:20", screen: "inbox", act: ["mail", "sarna-price"], hl: ".letter",
+      text: "Sarna Oleochem asks for 9.4% more on SLES, \"since our May price\", with palm feedstock up 9%." },
+    { when: "Wednesday, 11:21", screen: "inbox", act: ["mail", "sarna-price"], hl: "#claim-check",
+      text: "The claim check reads each driver against its index since May. Palm is up far less than claimed. Chemicals are down. Energy is up more than claimed. The surcharge is not a cost." },
+    { when: "Thursday 19 November, 10:00", screen: "inbox", act: ["mail", "sarna-price"], hl: "#draft",
+      text: "The counter at {just} is drafted with the workings attached. Nothing reaches Sarna until a person approves it." },
+    { when: "Friday 20 November, 09:00", screen: "watch", act: null, hl: "#watch-down",
+      text: "Index watch turns it round: prices set in May whose index has fallen since. The diesel-linked part of road distribution alone is worth {brent} a year." },
+    { when: "Friday, 09:10", screen: "watch", act: null, hl: "#tally",
+      text: "The week: toothpaste supply covered, {held} a year held off on SLES, {recover} a year to recover. Every price, proven." }
   ]
 };
