@@ -23,6 +23,7 @@
   <span class="tag" title="Company, suppliers and most events are fictional. Indices marked Real are public data.">Demo company</span>
   <span class="clock mono" id="clock"></span>
   <button class="btn btn--ember" id="tour-btn" type="button">Play the week</button>
+<a class="x-close" href="../#showcase" aria-label="Close and go back to Procis" title="Close (Esc)"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></a>
 </header>
 
 <div class="shell">
@@ -101,5 +102,6 @@
 <div class="toast" id="toast" role="status" hidden></div>
 <script src="demo.js"></script>
 <script src="terminal.js"></script>
+<script>(function(){var x=document.querySelector(".x-close");if(!x)return;if(window.top!==window.self){x.remove();return;}function go(e){if(e)e.preventDefault();if(document.referrer&&new URL(document.referrer).pathname.replace(/index\.html$/,"")===new URL("../",location.href).pathname&&history.length>1)history.back();else location.href=x.href;}x.addEventListener("click",go);document.addEventListener("keydown",function(e){if(e.key==="Escape"&&!document.querySelector("dialog[open],.tour:not([hidden])")&&!/INPUT|TEXTAREA|SELECT/.test(e.target.tagName))go(e);});})();</script>
 </body>
 </html>

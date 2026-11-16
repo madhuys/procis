@@ -146,3 +146,8 @@ h3 { font: 600 14px/1.35 var(--sans); margin: 0 0 4px; }
 main:focus { outline: none; }
 @media (max-width: 900px) { #tally { grid-template-columns: 1fr; } #tally .fig { font-size: 20px; } #watch .tbl { display: block; overflow-x: auto; } }
 #watch > .lbl { margin-bottom: 12px; }
+
+/* close: back to the Procis page (hidden when shown inside the site viewer) */
+.x-close { margin-left: 0; flex: none; width: 36px; height: 36px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid rgba(242,238,230,0.24); border-radius: 999px; color: #F2EEE6; text-decoration: none; }
+.x-close:hover, .x-close:focus-visible { border-color: #FF4F1F; color: #FF4F1F; }
+@media print { .x-close { display: none; } }

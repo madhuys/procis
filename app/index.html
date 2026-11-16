@@ -36,6 +36,7 @@
     <button type="button" class="btn" id="print">Print</button>
     <button type="button" class="btn btn--quiet" id="reset">Reset</button>
   </div>
+<a class="x-close" href="../#showcase" aria-label="Close and go back to Procis" title="Close (Esc)"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></a>
 </header>
 
 <section class="kpis" aria-label="Headline figures, per 1,000 units">
@@ -207,5 +208,6 @@
 
 <script src="model.js"></script>
 <script src="app.js"></script>
+<script>(function(){var x=document.querySelector(".x-close");if(!x)return;if(window.top!==window.self){x.remove();return;}function go(e){if(e)e.preventDefault();if(document.referrer&&new URL(document.referrer).pathname.replace(/index\.html$/,"")===new URL("../",location.href).pathname&&history.length>1)history.back();else location.href=x.href;}x.addEventListener("click",go);document.addEventListener("keydown",function(e){if(e.key==="Escape"&&!document.querySelector("dialog[open],.tour:not([hidden])")&&!/INPUT|TEXTAREA|SELECT/.test(e.target.tagName))go(e);});})();</script>
 </body>
 </html>
