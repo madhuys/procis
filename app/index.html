@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Procis · Should-cost lab (Illustrative)</title>
+<meta name="description" content="Build a should-cost, check a supplier's price claim against the indices, watch rockets and feathers, and leave with a negotiation pack. Illustrative model.">
+<meta name="theme-color" content="#0B0D12">
+<meta property="og:title" content="Procis · Should-cost lab">
+<meta property="og:description" content="Every price, proven. An illustrative should-cost model a Head of Procurement can run in the browser.">
+<meta property="og:image" content="https://madhuys.github.io/procis/img/og-image.png">
+<link rel="icon" type="image/svg+xml" href="../brand/procis-favicon.svg">
+<link rel="icon" type="image/png" sizes="32x32" href="../brand/favicon-32.png">
+<link rel="apple-touch-icon" href="../brand/apple-touch-icon.png">
+<link rel="preload" href="../fonts/Geist-VF.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../fonts/GeistMono-VF.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to the model</a>
+
+<header class="top">
+  <a class="brand" href="../" aria-label="Procis home">
+    <img src="../brand/procis-mark-reversed.svg" alt="" width="28" height="28">
+    <span class="word">procis</span>
+  </a>
+  <span class="lab">Should-cost lab</span>
+  <span class="tag" title="Every preset figure in this app is illustrative">Illustrative</span>
+  <div class="case">
+    <label for="tpl" class="lbl">Case</label>
+    <select id="tpl" aria-label="Choose a template case"></select>
+  </div>
+  <div class="actions">
+    <button type="button" class="btn" id="share">Share link</button>
+    <button type="button" class="btn" id="csv">Export CSV</button>
+    <button type="button" class="btn" id="print">Print</button>
+    <button type="button" class="btn btn--quiet" id="reset">Reset</button>
+  </div>
+</header>
+
+<section class="kpis" aria-label="Headline figures, per 1,000 units">
+  <div class="kpi"><span class="lbl">Should-cost / 1,000</span><output id="k-base" class="fig">-</output></div>
+  <div class="kpi"><span class="lbl">Supplier asks</span><output id="k-ask" class="fig">-</output><span id="k-ask-p" class="sub"></span></div>
+  <div class="kpi"><span class="lbl">Indices justify</span><output id="k-just" class="fig">-</output><span id="k-just-p" class="sub"></span></div>
+  <div class="kpi kpi--ember"><span class="lbl">Gap / 1,000</span><output id="k-gap" class="fig">-</output><span class="sub">not backed by any index</span></div>
+  <div class="kpi kpi--ember"><span class="lbl">At stake a year</span><output id="k-stake" class="fig">-</output><span id="k-vol" class="sub"></span></div>
+</section>
+
+<nav class="tabs" role="tablist" aria-label="Model panes">
+  <button role="tab" id="t-build" aria-controls="p-build" aria-selected="true"><span class="n">01</span> Should-cost</button>
+  <button role="tab" id="t-claim" aria-controls="p-claim" aria-selected="false" tabindex="-1"><span class="n">02</span> Claim check</button>
+  <button role="tab" id="t-watch" aria-controls="p-watch" aria-selected="false" tabindex="-1"><span class="n">03</span> Index watch</button>
+  <button role="tab" id="t-pack" aria-controls="p-pack" aria-selected="false" tabindex="-1"><span class="n">04</span> Negotiation pack</button>
+</nav>
+
+<main id="main">
+  <!-- 01 -->
+  <section class="pane" id="p-build" role="tabpanel" aria-labelledby="t-build" tabindex="0">
+    <div class="pane-head">
+      <h1>What it should cost</h1>
+      <p class="lede">Build the price from the bill of materials. Edit any line; the total and the shares move as you type. Overhead and margin are a share of the selling price.</p>
+    </div>
+    <div class="grid2">
+      <div class="card">
+        <div class="card-head">
+          <h2>Bill of materials <span class="muted">per 1,000 units</span></h2>
+          <label class="field field--inline"><span class="lbl">Item</span><input id="item-name" type="text" maxlength="80" aria-label="Item name"></label>
+        </div>
+        <div class="bom" role="table" aria-label="Bill of materials lines">
+          <div class="bom-row bom-hd" role="row">
+            <span role="columnheader">Line</span><span role="columnheader">Driver</span><span role="columnheader">Quantity</span><span role="columnheader">Rate</span><span role="columnheader" class="r">EUR / 1,000</span><span role="columnheader" class="r">Share</span><span role="columnheader"><span class="sr">Remove</span></span>
+          </div>
+          <div id="bom-lines"></div>
+          <div class="bom-row bom-om" role="row">
+            <span role="cell" class="nm">Overhead</span><span role="cell" class="muted">of price</span>
+            <span role="cell"><label class="unit"><input id="oh" type="number" step="0.5" min="0" max="90" inputmode="decimal" aria-label="Overhead, percent of price"><i>%</i></label></span>
+            <span role="cell" class="muted cell-note">SG&amp;A, depreciation</span>
+            <span role="cell" class="r mono" id="oh-eur"></span><span role="cell" class="r mono muted" id="oh-sh"></span><span role="cell"></span>
+          </div>
+          <div class="bom-row bom-om" role="row">
+            <span role="cell" class="nm">Margin</span><span role="cell" class="muted">of price</span>
+            <span role="cell"><label class="unit"><input id="mg" type="number" step="0.5" min="0" max="90" inputmode="decimal" aria-label="Margin, percent of price"><i>%</i></label></span>
+            <span role="cell" class="muted cell-note">supplier profit</span>
+            <span role="cell" class="r mono" id="mg-eur"></span><span role="cell" class="r mono muted" id="mg-sh"></span><span role="cell"></span>
+          </div>
+          <div class="bom-row bom-total" role="row">
+            <span role="cell" class="nm">Should-cost</span><span role="cell"></span><span role="cell"></span><span role="cell"></span>
+            <span role="cell" class="r mono big" id="bom-total"></span><span role="cell" class="r mono">100%</span><span role="cell"></span>
+          </div>
+        </div>
+        <div class="row-actions">
+          <button type="button" class="btn" id="add-line">+ Add line</button>
+          <span class="muted small">Material: grams per unit x EUR per kg. Energy: kWh x price. Labour: minutes x hourly rate. Freight: pallets x rate.</span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h2>Cost share</h2><span class="tag">Illustrative</span></div>
+        <div id="donut" class="chart chart--donut"></div>
+        <div id="share-bars" class="sharebars" role="list" aria-label="Cost share by driver"></div>
+        <p class="readout" id="donut-read" aria-live="polite"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 02 -->
+  <section class="pane" id="p-claim" role="tabpanel" aria-labelledby="t-claim" tabindex="0" hidden>
+    <div class="pane-head">
+      <h1>Is the increase justified?</h1>
+      <p class="lede">Enter what the supplier asks per driver and what the index moved. Each ask is weighted by the driver's share of the price, so a big ask on a small driver moves the total a little.</p>
+    </div>
+    <div class="card">
+      <div class="card-head">
+        <h2>Claim by driver</h2>
+        <label class="field field--inline"><span class="lbl">Tolerance</span><label class="unit"><input id="tol" type="number" step="0.5" min="0" max="50" inputmode="decimal" aria-label="Tolerance in percentage points"><i>pp</i></label></label>
+      </div>
+      <div class="claim" role="table" aria-label="Supplier claim against the index, per driver">
+        <div class="claim-row claim-hd" role="row">
+          <span role="columnheader">Driver</span><span role="columnheader" class="r">Share</span><span role="columnheader">Supplier asks</span><span role="columnheader">Index says</span><span role="columnheader" class="r">Asked EUR</span><span role="columnheader" class="r">Justified EUR</span><span role="columnheader">Verdict</span>
+        </div>
+        <div id="claim-rows"></div>
+        <div class="claim-row claim-total" role="row">
+          <span role="cell" class="nm">Total, weighted</span><span role="cell" class="r mono">100%</span>
+          <span role="cell" class="mono" id="c-askp"></span><span role="cell" class="mono" id="c-idxp"></span>
+          <span role="cell" class="r mono" id="c-aske"></span><span role="cell" class="r mono" id="c-idxe"></span><span role="cell" id="c-verd"></span>
+        </div>
+      </div>
+      <p class="muted small rule">Justified: the ask is within the tolerance of the index. Part-justified: the index rose, but by less than the ask. Not justified: the index was flat or fell.</p>
+    </div>
+    <div class="grid2 grid2--wide">
+      <div class="card">
+        <div class="card-head"><h2>From today's price to the ask</h2><span class="tag">EUR / 1,000</span></div>
+        <div id="waterfall" class="chart"></div>
+        <p class="readout" id="wf-read" aria-live="polite"></p>
+      </div>
+      <div class="card stack">
+        <div class="big-compare">
+          <div><span class="lbl">Supplier asks</span><span class="fig" id="cmp-ask"></span><span class="sub" id="cmp-ask-p"></span></div>
+          <div><span class="lbl">Cost-justified</span><span class="fig" id="cmp-just"></span><span class="sub" id="cmp-just-p"></span></div>
+        </div>
+        <div class="counter">
+          <span class="lbl">Counter-offer</span>
+          <span class="fig fig--ember" id="cmp-counter"></span>
+          <p class="small" id="cmp-counter-note"></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 03 -->
+  <section class="pane" id="p-watch" role="tabpanel" aria-labelledby="t-watch" tabindex="0" hidden>
+    <div class="pane-head">
+      <h1>Rockets and feathers</h1>
+      <p class="lede">Prices go up with the index like a rocket and come down like a feather. The ember area is what you paid above the index on the way down.</p>
+    </div>
+    <div class="card">
+      <div class="card-head card-head--wrap">
+        <div class="seg" role="radiogroup" aria-label="Driver" id="watch-drivers"></div>
+        <div class="controls">
+          <label class="field field--inline"><span class="lbl">Window</span>
+            <select id="watch-window" aria-label="Recovery window"><option value="12">Last 12 months</option><option value="24">All 24 months</option></select></label>
+          <label class="field field--inline"><span class="lbl">Volume</span><label class="unit"><input id="vol-w" type="number" step="10" min="0" inputmode="decimal" aria-label="Annual volume, million units"><i>m / yr</i></label></label>
+        </div>
+      </div>
+      <div id="watch" class="chart chart--watch"></div>
+      <p class="readout" id="watch-read" aria-live="polite"></p>
+      <div class="recover">
+        <div><span class="lbl">To recover, this driver</span><span class="fig fig--ember" id="rec-one"></span><span class="sub" id="rec-one-note"></span></div>
+        <div><span class="lbl">All drivers, same window</span><span class="fig" id="rec-all"></span><span class="sub">illustrative series, your contract indices replace them</span></div>
+      </div>
+      <div class="rec-table" role="table" aria-label="Amount to recover by driver" id="rec-table"></div>
+    </div>
+  </section>
+
+  <!-- 04 -->
+  <section class="pane" id="p-pack" role="tabpanel" aria-labelledby="t-pack" tabindex="0" hidden>
+    <div class="pane-head">
+      <h1>Walk in with three numbers</h1>
+      <p class="lede">Open at the cost-justified price. Concede at most half the gap. Know the price at which you walk.</p>
+    </div>
+    <div class="positions">
+      <div class="pos pos--target"><span class="lbl">Target</span><span class="fig" id="pk-t"></span><span class="sub" id="pk-t-s"></span><p class="small">The cost-justified price: today's price moved only by the indices.</p></div>
+      <div class="pos"><span class="lbl">Fallback</span><span class="fig" id="pk-f"></span><span class="sub" id="pk-f-s"></span><p class="small">Justified plus half the gap.</p></div>
+      <div class="pos"><span class="lbl">Walk-away</span><span class="fig" id="pk-w"></span><span class="sub" id="pk-w-s"></span>
+        <label class="field field--inline small"><span>Justified plus</span><label class="unit"><input id="walk" type="number" step="5" min="0" max="100" inputmode="decimal" aria-label="Walk-away, percent of the gap"><i>% of gap</i></label></label></div>
+    </div>
+    <div class="grid2 grid2--wide">
+      <div class="card">
+        <div class="card-head"><h2>Where the three numbers sit</h2><span class="tag">EUR / 1,000</span></div>
+        <div id="ladder" class="chart chart--ladder"></div>
+        <label class="field field--inline"><span class="lbl">Annual volume</span><label class="unit"><input id="vol" type="number" step="10" min="0" inputmode="decimal" aria-label="Annual volume, million units"><i>m units / yr</i></label></label>
+      </div>
+      <div class="card">
+        <div class="card-head"><h2>Summary to send</h2>
+          <div class="btns"><button type="button" class="btn btn--ember" id="copy">Copy summary</button></div></div>
+        <textarea id="summary" readonly rows="16" aria-label="Negotiation summary text"></textarea>
+        <p class="small muted" id="copy-status" role="status"></p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <p>Illustrative model. Your real indices and specs replace these in a teardown.</p>
+  <a class="btn btn--ember" href="mailto:hello@procis.ai?subject=Book%20a%20teardown">Book a teardown</a>
+</footer>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="model.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

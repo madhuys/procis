@@ -350,6 +350,38 @@ a { color: inherit; }
 .foot p { margin: 0; }
 
 /* ============================================================== MOBILE == */
+
+/* ================================================================ SHOWCASE == */
+.show { padding-block: clamp(9rem, 22vh, 14rem) clamp(3rem, 6vh, 5rem); scroll-margin-top: var(--nav-h, 4.4rem); }
+.show__top { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: clamp(2rem, 6vw, 7rem); align-items: end; margin-bottom: clamp(2.4rem, 6vh, 4rem); }
+.show h2 { font-size: var(--sc-t-3xl); line-height: 0.98; letter-spacing: -0.03em; margin: 0; max-width: 14ch; }
+.show .sc-body { font-size: var(--sc-t-base); }
+.tile { display: block; text-decoration: none; color: var(--bone); border: 1px solid color-mix(in oklab, var(--bone) 12%, transparent); border-radius: 18px; overflow: hidden; background: color-mix(in oklab, var(--bone) 3%, var(--ink)); transition: border-color 240ms var(--sc-ease-out), transform 240ms var(--sc-ease-out); }
+.tile__go a { color: inherit; }
+.tile:hover, .tile:focus-visible { border-color: var(--ember); transform: translateY(-3px); }
+.tile__pic { position: relative; aspect-ratio: 3 / 2; overflow: hidden; background: #15171d; }
+.tile__pic img, .tile__pic video { width: 100%; height: 100%; object-fit: cover; object-position: top left; display: block; }
+.tile__txt { padding: 1.2rem 1.3rem 1.35rem; display: grid; gap: 0.45rem; }
+.tile__k { font-family: var(--sc-font-mono); font-size: var(--sc-t-xs); letter-spacing: 0.12em; text-transform: uppercase; color: var(--dim); }
+.tile__t { font-family: var(--sc-font-display); font-size: var(--sc-t-xl); line-height: 1.05; letter-spacing: -0.02em; margin: 0; }
+.tile__d { margin: 0; color: var(--sc-ink-soft); font-size: var(--sc-t-sm); line-height: 1.5; }
+.tile__go { font-family: var(--sc-font-mono); font-size: var(--sc-t-xs); letter-spacing: 0.1em; text-transform: uppercase; color: var(--ember); margin-top: 0.35rem; }
+.show__lead { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 1.2rem; margin-bottom: 1.2rem; }
+.show__lead .tile__pic { aspect-ratio: 16 / 10; }
+.show__lead .tile--film .tile__pic { aspect-ratio: 16 / 9; }
+.tile--film .tile__pic video { object-position: center; }
+.tile--lab .tile__t { font-size: var(--sc-t-2xl); }
+.show__grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.2rem; }
+.show__note { margin-top: 1.6rem; font-family: var(--sc-font-mono); font-size: var(--sc-t-xs); letter-spacing: 0.08em; color: var(--dim); }
+.show__note a { color: var(--bone); }
+.bar__nav { display: flex; gap: 0.6rem; align-items: center; }
+.bar__link { font: 500 var(--sc-t-sm)/1 var(--sc-font-text); color: inherit; text-decoration: none; padding: 0.72rem 0.9rem; opacity: 0.85; }
+.bar__link:hover { opacity: 1; text-decoration: underline; text-underline-offset: 0.3em; }
+@media (max-width: 860px) {
+  .show__top, .show__lead, .show__grid { grid-template-columns: minmax(0, 1fr); }
+  .bar__link { padding: 0.6rem 0.4rem; font-size: 0.8rem; }
+}
+
 @media (max-width: 860px) {
   :root { --nav-h: 3.6rem; }
   .brand .mark { width: 1.75rem; }
@@ -481,7 +513,10 @@ a { color: inherit; }
     <svg class="mark" id="navMark" viewBox="18 34 168 132" aria-hidden="true"><g class="mark__disc"><circle cx="86.72" cy="100" r="56.76" fill="#FF4F1F"/></g><circle cx="86.72" cy="100" r="61.5" fill="none" stroke="currentColor" stroke-width="9"/></svg>
     <img class="wm" src="brand/procis-wordmark-bone.svg" alt="Procis" width="372" height="122">
   </a>
-  <a class="btn btn--line" href="mailto:hello@procis.ai?subject=Book%20a%20teardown">Book a teardown</a>
+  <nav class="bar__nav" aria-label="Site">
+    <a class="bar__link" href="#showcase">See it work</a>
+    <a class="btn btn--line" href="mailto:hello@procis.ai?subject=Book%20a%20teardown">Book a teardown</a>
+  </nav>
 </header>
 
 <main id="top">
@@ -508,7 +543,7 @@ a { color: inherit; }
         <p class="hero__sub">Procis checks every supplier price against what it should cost. Then its agents act on the gap.</p>
         <div class="hero__cta">
           <a class="btn btn--ember" href="mailto:hello@procis.ai?subject=Book%20a%20teardown">Book a teardown</a>
-          <a class="btn btn--line" href="#claim">See a claim checked</a>
+          <a class="btn btn--line" href="#showcase">Try the should-cost lab</a>
         </div>
         <p class="mono hero__small">One category · six weeks · one savings range your CFO signs</p>
       </div>
@@ -768,6 +803,69 @@ a { color: inherit; }
           <p class="weeks__fee" id="weeksFee">Fixed fee, credited in full if you continue to the platform.</p>
         </div>
       </div>
+    </div>
+  </section>
+
+  <!-- 6b2 · PROOF IN HAND · flow, everything a CPO can open today -->
+  <section class="show" id="showcase" data-sc-act="flow" data-sc-drift="#0B0D12" aria-labelledby="showH">
+    <div class="sc-wrap">
+      <div class="show__top" data-sc-in data-sc-stagger="90">
+        <div>
+          <p class="kicker">See it work</p>
+          <h2 class="disp" id="showH">Open what your team gets in week six.</h2>
+        </div>
+        <p class="sc-body">One illustrative case, carried all the way through: a 330 ml PET bottle at €60.00 per 1,000, a supplier asking for 8.8% more, and indices that back 4.53%. Change any input in the lab and watch the verdict move. Then download the same case as the model, the memo and the pack.</p>
+      </div>
+      <div class="show__lead" data-sc-in data-sc-stagger="110">
+        <a class="tile tile--lab" href="app/?pane=claim">
+          <div class="tile__pic"><img src="samples/procis-lab-preview.webp" width="1440" height="1183" alt="The Procis should-cost lab: the supplier's +8.8% ask checked driver by driver against the indices, with a counter-offer of €62.72 per 1,000" loading="lazy"></div>
+          <div class="tile__txt">
+            <span class="tile__k">Live app · runs in your browser</span>
+            <h3 class="tile__t">The should-cost lab</h3>
+            <p class="tile__d">Build the cost, check the claim, watch the index, print the negotiation pack. Every number recalculates as you type.</p>
+            <span class="tile__go">Open the lab →</span>
+          </div>
+        </a>
+        <div class="tile tile--film">
+          <div class="tile__pic"><video src="film/procis-film-16x9.mp4" poster="film/procis-film-poster.webp" controls preload="none" playsinline width="1920" height="1080" aria-label="The Procis film, two minutes"></video></div>
+          <div class="tile__txt">
+            <span class="tile__k">Film · 2 min · sound on</span>
+            <h3 class="tile__t">Every price, proven.</h3>
+            <p class="tile__d">The case in two minutes, from the increase letter to the counter-offer.</p>
+            <span class="tile__go"><a href="film/procis-film-16x9.mp4" target="_blank" rel="noopener">Full screen →</a> &nbsp; <a href="film/procis-film-9x16.mp4" target="_blank" rel="noopener">Vertical 9:16 →</a></span>
+          </div>
+        </div>
+      </div>
+      <div class="show__grid" data-sc-in data-sc-stagger="110">
+        <a class="tile" href="samples/procis-should-cost-PET330.xlsx" download>
+          <div class="tile__pic"><img src="samples/procis-should-cost-preview.webp" width="1200" height="800" alt="Excel should-cost model for the 330 ml PET bottle" loading="lazy"></div>
+          <div class="tile__txt">
+            <span class="tile__k">Excel · .xlsx · 10 KB</span>
+            <h3 class="tile__t">Should-cost model</h3>
+            <p class="tile__d">Every sum a live formula your finance team can open and audit, each input tied to its index.</p>
+            <span class="tile__go">Download →</span>
+          </div>
+        </a>
+        <a class="tile" href="samples/procis-claim-check-memo.docx" download>
+          <div class="tile__pic"><img src="samples/procis-claim-check-preview.webp" width="1200" height="800" alt="Word memo giving the verdict on the supplier's increase letter" loading="lazy"></div>
+          <div class="tile__txt">
+            <span class="tile__k">Word · .docx · 38 KB</span>
+            <h3 class="tile__t">Claim-check memo</h3>
+            <p class="tile__d">The verdict on the increase letter, driver by driver, with the counter-offer and its reasons.</p>
+            <span class="tile__go">Download →</span>
+          </div>
+        </a>
+        <a class="tile" href="samples/procis-negotiation-pack.pptx" download>
+          <div class="tile__pic"><img src="samples/procis-negotiation-preview.webp" width="1200" height="800" alt="PowerPoint negotiation pack with target, fallback and walk-away prices" loading="lazy"></div>
+          <div class="tile__txt">
+            <span class="tile__k">PowerPoint · .pptx · 37 KB</span>
+            <h3 class="tile__t">Negotiation pack</h3>
+            <p class="tile__d">Target, fallback and walk-away, the evidence behind each, and what to say when the supplier pushes back.</p>
+            <span class="tile__go">Download →</span>
+          </div>
+        </a>
+      </div>
+      <p class="show__note">Illustrative case. In a teardown, your specs, quotes and indices replace these numbers.</p>
     </div>
   </section>
 
