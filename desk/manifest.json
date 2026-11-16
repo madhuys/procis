@@ -1,0 +1,14 @@
+{
+  "name": "Procis Commodity Desk",
+  "short_name": "Procis Desk",
+  "description": "Wheat: producers, futures, freight, news, innovation, scenarios and forecast models.",
+  "start_url": "./#overview",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0B0D12",
+  "theme_color": "#0B0D12",
+  "icons": [
+    { "src": "../brand/procis-app-icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" },
+    { "src": "../brand/apple-touch-icon.png", "sizes": "180x180", "type": "image/png" }
+  ]
+}

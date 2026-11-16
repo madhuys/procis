@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Procis Commodity Desk · Wheat</title>
+<meta name="description" content="Procis Commodity Desk: wheat across the top producers, futures, freight and chokepoints, news with a buyer's read, an innovation tracker, scenario shocks and forecast models you can run in the browser.">
+<meta name="theme-color" content="#0B0D12">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="../brand/procis-mark-reversed.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../brand/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="preload" href="../fonts/Geist-VF.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="desk.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top">
+  <a class="brand" href="../" aria-label="Procis home"><img src="../brand/procis-mark-reversed.svg" width="28" height="28" alt=""><span class="word">Procis</span></a>
+  <span class="lab">Commodity desk</span>
+  <label class="cmdty"><span class="lbl">Commodity</span>
+    <select id="cmdty" aria-label="Commodity">
+      <option value="wheat" selected>Wheat</option>
+      <option value="maize" disabled>Maize (next)</option>
+      <option value="soy" disabled>Soybeans (next)</option>
+      <option value="rice" disabled>Rice (next)</option>
+    </select>
+  </label>
+  <div class="ticker" id="ticker" aria-label="Benchmarks"></div>
+  <a class="x-close" href="../" aria-label="Close the desk and go back to Procis" title="Close">
+    <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M1 1l12 12M13 1L1 13" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+  </a>
+</header>
+
+<div class="shell">
+  <nav class="rail" id="rail" aria-label="Desk screens">
+    <button data-s="overview" aria-current="page"><span class="k">01</span>Overview</button>
+    <button data-s="countries"><span class="k">02</span>Top 10 countries</button>
+    <button data-s="market"><span class="k">03</span>Market &amp; futures</button>
+    <button data-s="logistics"><span class="k">04</span>Shipping &amp; risk</button>
+    <button data-s="news"><span class="k">05</span>News wire<span class="cnt" id="cnt-news"></span></button>
+    <button data-s="innovation"><span class="k">06</span>Innovation<span class="cnt" id="cnt-inno"></span></button>
+    <button data-s="scenarios"><span class="k">07</span>Scenarios</button>
+    <button data-s="models"><span class="k">08</span>Forecast models</button>
+    <button data-s="playbook"><span class="k">09</span>Playbook</button>
+    <button data-s="watch"><span class="k">10</span>Watchlist<span class="cnt" id="cnt-watch"></span></button>
+    <div class="rail-foot">
+      <p><span class="live-dot"></span>Data to <b id="asof"></b></p>
+      <p>Static snapshot, no live feed. Every reported figure links to its source; scores marked <i>desk</i> are Procis judgement.</p>
+      <p><a href="../terminal/">Procis terminal</a> · <a href="../">Procis home</a></p>
+    </div>
+  </nav>
+
+  <main id="main">
+    <!-- 01 OVERVIEW -->
+    <section class="screen on" id="s-overview" aria-labelledby="h-ov">
+      <div class="head">
+        <div><h1 id="h-ov">Wheat, this week</h1><p id="ov-lede"></p></div>
+        <div class="pill-row"><span class="tag tag--mute" id="ov-asof"></span></div>
+      </div>
+      <div class="kpis" id="ov-kpis"></div>
+      <div class="grid g-main">
+        <div class="panel globe-panel" style="padding:0">
+          <div class="globe-wrap">
+            <div id="globe" role="img" aria-label="Globe of wheat producers, trade lanes, chokepoints and news"></div>
+            <div class="globe-fallback" id="globe-fb" hidden>Globe needs WebGL. The tables on the next screens show the same data.</div>
+            <div class="layers" id="layers">
+              <button data-l="prod" aria-pressed="true"><i style="background:var(--wheat)"></i>Producers</button>
+              <button data-l="flows" aria-pressed="true"><i style="background:var(--sky)"></i>Trade lanes</button>
+              <button data-l="choke" aria-pressed="true"><i style="background:var(--bad)"></i>Chokepoints</button>
+              <button data-l="news" aria-pressed="false"><i style="background:var(--ember)"></i>News</button>
+              <button data-l="risk" aria-pressed="false"><i style="background:var(--warn)"></i>Risk tint</button>
+            </div>
+            <div class="legend" id="legend"></div>
+            <div class="globe-card" id="gcard" role="dialog" aria-live="polite"><button class="x" aria-label="Close card">×</button><div id="gcard-b"></div></div>
+            <button class="btn spin-hint" id="spin" aria-pressed="true" title="Pause or resume rotation">Rotate</button>
+          </div>
+        </div>
+        <div class="grid" style="align-content:start">
+          <div class="panel">
+            <div class="panel__h"><p class="lbl">The desk call</p><span class="tag" id="call-tag"></span></div>
+            <div class="callbox" id="callbox"></div>
+          </div>
+          <div class="panel">
+            <div class="panel__h"><p class="lbl">Latest on the wire</p><button class="btn" data-go="news">All news</button></div>
+            <div class="wire" id="ov-wire"></div>
+          </div>
+        </div>
+      </div>
+      <div class="grid g-2" style="margin-top:12px">
+        <div class="panel">
+          <div class="panel__h"><p class="lbl">World balance, million tonnes</p><span class="tag tag--mute">USDA · FAO · IGC</span></div>
+          <div class="chart" id="ch-balance"></div>
+          <p class="note" id="bal-note"></p>
+        </div>
+        <div class="panel">
+          <div class="panel__h"><p class="lbl">US Gulf wheat export price, $/t, monthly</p><span class="tag tag--mute">World Bank</span></div>
+          <div class="chart" id="ch-ov-price"></div>
+          <p class="note">Hard red winter, US Gulf FOB. A physical export price, so it sits above Chicago futures by the basis. Source: <a href="https://www.worldbank.org/en/research/commodity-markets" target="_blank" rel="noopener">World Bank Pink Sheet</a>.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 02 COUNTRIES -->
+    <section class="screen" id="s-countries" aria-labelledby="h-co">
+      <div class="head">
+        <div><h1 id="h-co">Top 10 producers, plus Argentina</h1><p>The ten largest growers by 2025/26 output, with Argentina added because it is the sixth-largest exporter. Pick a row for the rationale, crop calendar and source.</p></div>
+        <div class="seg" id="co-metric" role="group" aria-label="Sort by">
+          <button data-m="prod" aria-pressed="true">Output</button><button data-m="exp" aria-pressed="false">Exports</button><button data-m="chg" aria-pressed="false">Change</button><button data-m="risk" aria-pressed="false">Risk</button>
+        </div>
+      </div>
+      <div class="grid g-side">
+        <div class="grid" style="align-content:start">
+          <div class="panel"><div class="tbl-wrap"><table class="tbl" id="co-tbl"></table></div>
+            <p class="note">Mt = million tonnes. Output: 2024/25, 2025/26, 2026/27 forecast. Change = 26/27 against 25/26. Risk is a desk score (0-100) from weather, logistics and policy exposure, not reported data.</p></div>
+          <div class="panel">
+            <div class="panel__h"><p class="lbl">Crop calendar</p><span class="xs muted"><i style="display:inline-block;width:10px;height:10px;background:rgba(142,197,255,.45);vertical-align:-1px"></i> sowing &nbsp; <i style="display:inline-block;width:10px;height:10px;background:var(--wheat);vertical-align:-1px"></i> harvest &nbsp; <span style="outline:1px solid var(--ember);padding:0 3px">now</span></span></div>
+            <div class="cal" id="cal"></div>
+            <p class="note">Main winter-wheat seasons, simplified. Spring wheat (Canada, Russia) is sown April-May.</p>
+          </div>
+        </div>
+        <div class="panel detail" id="co-detail" style="align-self:start;position:sticky;top:calc(var(--top-h) + 12px)"></div>
+      </div>
+    </section>
+
+    <!-- 03 MARKET -->
+    <section class="screen" id="s-market" aria-labelledby="h-mk">
+      <div class="head">
+        <div><h1 id="h-mk">Market &amp; futures</h1><p>Exchange benchmarks converted to $/t, the forward curve, and twenty years of monthly prices for wheat and the markets that drive it.</p></div>
+      </div>
+      <div class="kpis" id="mk-kpis"></div>
+      <div class="grid g-main">
+        <div class="panel">
+          <div class="panel__h"><p class="lbl" id="mk-title">Price history</p>
+            <div class="seg" id="mk-range" role="group" aria-label="Range"><button data-r="24" aria-pressed="false">2y</button><button data-r="60" aria-pressed="true">5y</button><button data-r="120" aria-pressed="false">10y</button><button data-r="999" aria-pressed="false">All</button></div>
+          </div>
+          <div class="pill-row" id="mk-series" style="margin-bottom:8px"></div>
+          <div class="seg" id="mk-mode" role="group" aria-label="View" style="margin-bottom:8px"><button data-v="abs" aria-pressed="true">Price</button><button data-v="idx" aria-pressed="false">Indexed to 100</button><button data-v="yoy" aria-pressed="false">Year on year %</button></div>
+          <div class="chart" id="ch-market"></div>
+          <p class="note">Monthly averages, World Bank Pink Sheet, to Oct 2026. Fertiliser and energy are wheat's main cost drivers; maize is its feed substitute.</p>
+        </div>
+        <div class="grid" style="align-content:start">
+          <div class="panel">
+            <div class="panel__h"><p class="lbl">Forward curve, CBOT SRW</p><span class="tag tag--mute">c/bu</span></div>
+            <div class="chart" id="ch-curve"></div>
+            <p class="note" id="curve-note"></p>
+          </div>
+          <div class="panel">
+            <div class="panel__h"><p class="lbl">Physical offers</p><span class="tag tag--mute">€/t → $/t</span></div>
+            <div class="tbl-wrap"><table class="tbl" id="phys"></table></div>
+            <p class="note">Indicative offers, 12-13 Nov 2026, from the desk's market pack. Ukraine FOB quotes are left out: the ones found could not be checked.</p>
+          </div>
+          <div class="panel">
+            <div class="panel__h"><p class="lbl">Correlation with wheat, monthly returns, 5y</p></div>
+            <div id="corr"></div>
+            <p class="note">Computed in your browser from the World Bank series. Correlation of month-on-month % changes.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 04 LOGISTICS -->
+    <section class="screen" id="s-logistics" aria-labelledby="h-lg">
+      <div class="head">
+        <div><h1 id="h-lg">Shipping &amp; risk</h1><p>Where wheat gets stuck. Chokepoint status, freight and the routes that carry the world's exports.</p></div>
+      </div>
+      <div class="kpis" id="lg-kpis"></div>
+      <div class="panel map2d" style="margin-bottom:12px">
+        <div class="panel__h"><p class="lbl">Typical export lanes and chokepoints</p><span class="xs muted">Lanes are illustrative routes weighted by exporter volume, not reported flows.</span></div>
+        <div id="map2d"></div>
+      </div>
+      <div class="choke" id="choke"></div>
+      <div class="panel" style="margin-top:12px">
+        <div class="panel__h"><p class="lbl">Desk risk index</p><span class="tag tag--mute">desk judgement</span></div>
+        <div class="wf" id="riskwf"></div>
+        <p class="note">Each component scored 0-100 by the desk from the dated evidence on this page; the index is their weighted average.</p>
+      </div>
+    </section>
+
+    <!-- 05 NEWS -->
+    <section class="screen" id="s-news" aria-labelledby="h-nw">
+      <div class="head">
+        <div><h1 id="h-nw">News wire</h1><p>Each story with its direction for price, an impact score and what it means for a buyer.</p></div>
+      </div>
+      <div class="filters">
+        <div class="seg" id="nw-dir" role="group" aria-label="Direction"><button data-d="all" aria-pressed="true">All</button><button data-d="1" aria-pressed="false">Bullish</button><button data-d="-1" aria-pressed="false">Bearish</button></div>
+        <select id="nw-theme" aria-label="Theme"></select>
+        <select id="nw-country" aria-label="Country"></select>
+        <select id="nw-sort" aria-label="Sort"><option value="date">Newest</option><option value="imp">Highest impact</option></select>
+      </div>
+      <div class="grid g-side">
+        <div class="news-list" id="news-list"></div>
+        <div class="grid news-side" style="align-content:start">
+          <div class="panel"><div class="panel__h"><p class="lbl">Sentiment by theme</p></div><div id="nw-themes"></div>
+            <p class="note">Sum of impact × direction. Right of centre pushes prices up.</p></div>
+          <div class="panel"><div class="panel__h"><p class="lbl">Net news pressure, by week</p></div><div class="chart" id="ch-news"></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 06 INNOVATION -->
+    <section class="screen" id="s-innovation" aria-labelledby="h-in">
+      <div class="head">
+        <div><h1 id="h-in">Innovation tracker</h1><p>Fifteen developments across five categories that change how wheat is grown, moved, priced or claimed. Each has a dated milestone and a source.</p></div>
+        <div class="seg" id="in-view" role="group" aria-label="View"><button data-v="cards" aria-pressed="true">Cards</button><button data-v="matrix" aria-pressed="false">Impact matrix</button><button data-v="time" aria-pressed="false">Horizon</button></div>
+      </div>
+      <div class="cat-tabs" id="cat-tabs"></div>
+      <div class="filters">
+        <select id="in-type" aria-label="Impact type"></select>
+        <select id="in-region" aria-label="Region"></select>
+        <select id="in-sort" aria-label="Sort"><option value="imp">Impact</option><option value="stage">Maturity</option><option value="horizon">Soonest</option></select>
+      </div>
+      <div id="in-body"></div>
+      <p class="note">Stage: research → pilot → early commercial → scaling → mature. Impact (1-5), adoption and horizon are desk estimates, not reported data; milestones are as the source states them.</p>
+    </section>
+
+    <!-- 07 SCENARIOS -->
+    <section class="screen" id="s-scenarios" aria-labelledby="h-sc">
+      <div class="head">
+        <div><h1 id="h-sc">Scenarios</h1><p>Switch shocks on, set their size, and see the price and your cost move. The model links price to exporter stocks-to-use; its elasticity is an assumption you can change.</p></div>
+      </div>
+      <div class="grid g-main">
+        <div class="panel">
+          <div class="panel__h"><p class="lbl">Shocks</p><button class="btn" id="sc-reset">Reset</button></div>
+          <div class="presets" id="presets"></div>
+          <div id="shocks"></div>
+          <div class="shock" style="border-top:1px solid var(--line);margin-top:6px">
+            <span></span><label for="elas">Price elasticity to stocks-to-use (assumption)</label>
+            <div class="ctl"><input type="range" id="elas" min="0.8" max="3" step="0.1" value="1.6"><output id="elas-o"></output></div>
+            <span class="why">-1.6 means a 10% fall in stocks-to-use lifts price about 16%. Studies of grain markets put it roughly between -1 and -3.</span>
+          </div>
+        </div>
+        <div class="grid" style="align-content:start">
+          <div class="panel">
+            <div class="res-figs" id="res-figs"></div>
+            <div class="chart" id="ch-fan"></div>
+            <p class="note">Shaded band: 80% range from monthly wheat volatility over the last five years, around the scenario path.</p>
+          </div>
+          <div class="panel">
+            <div class="panel__h"><p class="lbl">What moved the price, $/t</p></div>
+            <div class="wf" id="wf"></div>
+          </div>
+          <div class="panel">
+            <div class="panel__h"><p class="lbl">Your exposure</p></div>
+            <div class="alert-form"><span class="pair"><label for="vol" class="small">Annual volume</label><input type="number" id="vol" value="50000" min="0" step="1000" style="width:120px"><span class="small muted">t</span></span>
+              <span class="pair"><label for="hedged" class="small">Already priced</label><input type="number" id="hedged" value="30" min="0" max="100" step="5" style="width:72px"><span class="small muted">%</span></span></div>
+            <div id="exposure" style="margin-top:10px"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 08 MODELS -->
+    <section class="screen" id="s-models" aria-labelledby="h-md">
+      <div class="head">
+        <div><h1 id="h-md">Forecast models</h1><p>Six simple models backtested live in your browser on twenty years of monthly prices, then blended by their recent accuracy. Next to them, the futures curve: the market's own forecast.</p></div>
+        <div class="seg" id="md-series" role="group" aria-label="Series"><button data-k="hrw" aria-pressed="true">US HRW</button><button data-k="srw" aria-pressed="false">US SRW</button></div>
+      </div>
+      <div class="grid g-main">
+        <div class="panel">
+          <div class="panel__h"><p class="lbl">Forecast, next 6 months, $/t</p>
+            <div class="seg" id="md-h" role="group" aria-label="Backtest horizon"><button data-h="1" aria-pressed="false">1-month test</button><button data-h="3" aria-pressed="true">3-month test</button><button data-h="6" aria-pressed="false">6-month test</button></div></div>
+          <div class="chart" id="ch-fc"></div>
+          <div class="chart-legend" id="fc-legend"></div>
+        </div>
+        <div class="panel">
+          <div class="panel__h"><p class="lbl">Backtest scoreboard</p><span class="tag tag--mute" id="md-win"></span></div>
+          <div class="model-row xs muted" style="padding-top:0"><span>Model</span><span>MAPE</span><span>Hit rate</span><span class="wcol">Ensemble weight</span></div>
+          <div id="md-board"></div>
+          <p class="note">MAPE: mean absolute % error of each model's forecast at the chosen horizon, over the last 60 months it could have been made. Hit rate: share of times it called the direction right. Weights are inverse-error.</p>
+        </div>
+      </div>
+      <div class="grid g-2" style="margin-top:12px">
+        <div class="panel">
+          <div class="panel__h"><p class="lbl">Approaches the trade uses</p></div>
+          <div id="approaches"></div>
+        </div>
+        <div class="panel">
+          <div class="panel__h"><p class="lbl">Data and tools worth paying for</p></div>
+          <div id="products"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 09 PLAYBOOK -->
+    <section class="screen" id="s-playbook" aria-labelledby="h-pb">
+      <div class="head">
+        <div><h1 id="h-pb">Buyer's playbook</h1><p>Triggers that tell a buyer when to act, checked against today's data, and a cover ladder for the next four quarters.</p></div>
+      </div>
+      <div class="grid g-main">
+        <div class="panel">
+          <div class="panel__h"><p class="lbl">Triggers</p><span class="xs muted"><span class="st fire" style="padding:1px 6px">firing</span> <span class="st arm" style="padding:1px 6px">armed</span> <span class="st calm" style="padding:1px 6px">quiet</span></span></div>
+          <div id="rules"></div>
+        </div>
+        <div class="grid" style="align-content:start">
+          <div class="panel">
+            <div class="panel__h"><p class="lbl">Cover ladder</p><span class="tag" id="ladder-tag"></span></div>
+            <div class="ladder" id="ladder"></div>
+            <p class="note">Rule of thumb, not advice: start at 40% cover per quarter and add or take off cover as risk rises or falls; cheaper curve months earn more.</p>
+          </div>
+          <div class="panel">
+            <div class="panel__h"><p class="lbl">Dated catalysts</p></div>
+            <div id="catalysts"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 10 WATCHLIST -->
+    <section class="screen" id="s-watch" aria-labelledby="h-wl">
+      <div class="head">
+        <div><h1 id="h-wl">Watchlist &amp; alerts</h1><p>Star countries, stories and innovations anywhere on the desk; they collect here. Set price alerts against the benchmarks. Everything is saved in this browser only.</p></div>
+        <button class="btn" id="wl-export">Export watchlist</button>
+      </div>
+      <div class="grid g-2">
+        <div class="panel"><div class="panel__h"><p class="lbl">Starred</p></div><div id="wl-list"></div></div>
+        <div class="panel">
+          <div class="panel__h"><p class="lbl">Price alerts</p></div>
+          <div class="alert-form">
+            <select id="al-b" aria-label="Benchmark"></select>
+            <select id="al-op" aria-label="Condition"><option value="lt">falls below</option><option value="gt">rises above</option></select>
+            <input type="number" id="al-v" aria-label="Level, $/t" placeholder="$/t" style="width:100px">
+            <button class="btn btn--ember" id="al-add">Add alert</button>
+          </div>
+          <div id="al-list" style="margin-top:10px"></div>
+          <p class="note">Alerts are checked against the desk's latest snapshot each time you open it.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+<div class="toast" id="toast" role="status"></div>
+<script src="data/wheat.js"></script>
+<script src="vendor/globe.gl.min.js" defer></script>
+<script src="desk.js" defer></script>
+</body>
+</html>

@@ -404,6 +404,7 @@ a { color: inherit; }
   .show__top, .show__lead, .show__grid, .show__lead .tile--lab { grid-template-columns: minmax(0, 1fr); }
   .bar__link { padding: 0 0.5rem; font-size: 0.82rem; min-height: 44px; display: inline-flex; align-items: center; }
 }
+@media (max-width: 480px) { .bar__link--see { display: none; } }
 
 @media (max-width: 860px) {
   :root { --nav-h: 3.6rem; }
@@ -567,7 +568,8 @@ a { color: inherit; }
     <img class="wm" src="brand/procis-wordmark-bone.svg" alt="Procis" width="372" height="122">
   </a>
   <nav class="bar__nav" aria-label="Site">
-    <a class="bar__link" href="#showcase">See it work</a>
+    <a class="bar__link bar__link--see" href="#showcase">See it work</a>
+    <a class="bar__link" href="desk/">Commodity desk</a>
     <a class="btn btn--line" href="mailto:hello@procis.ai?subject=Book%20a%20teardown">Book a teardown</a>
   </nav>
 </header>
@@ -645,6 +647,15 @@ a { color: inherit; }
             <h3 class="tile__t">The procurement terminal</h3>
             <p class="tile__d">One week across every category a consumer goods buyer runs: a supplier fire, a toothpaste tube moved to a second source, a chemicals supplier's 9.4% increase letter checked against its indices, and contracts to bring down where the index has fallen. Press Play the week.</p>
             <span class="tile__go">Open the terminal →</span>
+          </div>
+        </a>
+        <a class="tile tile--lab" href="desk/">
+          <div class="tile__pic"><img src="samples/procis-desk-preview.webp?v=20261116" width="1440" height="900" alt="The Procis Commodity Desk for wheat: a globe of the top producers, export lanes and shipping chokepoints, with futures, stocks-to-use and a desk risk index" loading="lazy"></div>
+          <div class="tile__txt">
+            <span class="tile__k">Live app · installs on your phone</span>
+            <h3 class="tile__t">The commodity desk</h3>
+            <p class="tile__d">Wheat, end to end: the top producers on a globe, futures and freight, the Black Sea and Red Sea chokepoints, news with a buyer's read, an innovation tracker, shock scenarios priced against your volume, and six forecast models scored on their record.</p>
+            <span class="tile__go">Open the desk →</span>
           </div>
         </a>
       </div>
