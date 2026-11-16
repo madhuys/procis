@@ -5,7 +5,7 @@
   'use strict';
   var items = null, dlg = null, opener = null, fsBtn = null;
   var KIND = { slides: 'Deck · PowerPoint', document: 'Memo · Word', sheet: 'Model · Excel', video: 'Film', site: 'Live app' };
-  var SRC = 'showcase/showcase.json?v=20261116w';
+  var SRC = 'showcase/showcase.json?v=20261116j';
 
   function h(tag, attrs) {
     var el = document.createElement(tag);
