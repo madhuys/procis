@@ -249,3 +249,14 @@ textarea { font: 400 12.5px/1.55 var(--mono); resize: vertical; min-height: 280p
 .x-close { margin-left: 0; flex: none; width: 36px; height: 36px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid rgba(242,238,230,0.24); border-radius: 999px; color: #F2EEE6; text-decoration: none; }
 .x-close:hover, .x-close:focus-visible { border-color: #FF4F1F; color: #FF4F1F; }
 @media print { .x-close { display: none; } }
+
+/* touch: 16px inputs stop iOS focus-zoom; 44px targets; tab strip hints that it scrolls */
+@media (pointer: coarse) {
+  input, select, textarea { font-size: 16px !important; min-height: 40px; }
+  button, .btn { min-height: 40px; }
+  .x-close { width: 44px; height: 44px; }
+}
+@media (max-width: 900px) {
+  .tabs { -webkit-mask-image: linear-gradient(90deg, #000 85%, transparent); mask-image: linear-gradient(90deg, #000 85%, transparent); scroll-snap-type: x proximity; }
+  .tabs button { scroll-snap-align: start; min-height: 44px; }
+}

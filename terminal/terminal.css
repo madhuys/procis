@@ -151,3 +151,12 @@ main:focus { outline: none; }
 .x-close { margin-left: 0; flex: none; width: 36px; height: 36px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid rgba(242,238,230,0.24); border-radius: 999px; color: #F2EEE6; text-decoration: none; }
 .x-close:hover, .x-close:focus-visible { border-color: #FF4F1F; color: #FF4F1F; }
 @media print { .x-close { display: none; } }
+
+/* phone: legible micro-labels, a rail that shows it scrolls, 44px close */
+@media (max-width: 900px) {
+  .tag { font-size: 11px; }
+  .tile .grp { font-size: 10.5px; }
+  .rail { -webkit-mask-image: linear-gradient(90deg, #000 85%, transparent); mask-image: linear-gradient(90deg, #000 85%, transparent); scroll-snap-type: x proximity; }
+  .rail > * { scroll-snap-align: start; }
+}
+@media (pointer: coarse) { .x-close { width: 44px; height: 44px; } }
