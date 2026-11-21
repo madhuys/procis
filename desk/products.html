@@ -45,6 +45,19 @@
     <aside class="pt-side" id="side" aria-live="polite"></aside>
   </section>
 
+  <section class="pt-card pt-trace" aria-labelledby="t-title">
+    <div class="pt-h">
+      <div><h2 id="t-title">Traced to the ground</h2><p class="sub xs muted" id="t-scope"></p></div>
+      <div class="pt-tbar"><button class="btn" id="b-play">▶ Play the trace</button><button class="btn" id="b-clear" hidden>Clear selection</button></div>
+    </div>
+    <div class="pt-stats" id="t-stats"></div>
+    <div class="pt-rtypes" id="t-rtypes"></div>
+    <p class="small muted pt-tsum" id="t-sum"></p>
+    <p class="xs faint pt-hint">Scroll sideways: the pack is on the right, the ground on the left.</p>
+    <div class="pt-flow" id="flow"><div class="pt-flow-in" id="flow-in"><svg class="pt-edges" id="edges" aria-hidden="true"></svg><div class="pt-cols" id="cols"></div></div></div>
+    <div class="pt-ndet" id="t-node" aria-live="polite"></div>
+  </section>
+
   <section class="pt-row">
     <div class="pt-card pt-globe-card">
       <div class="pt-h"><h2 id="g-title">Supply chain</h2><span class="tag tag--mute" id="g-count"></span></div>

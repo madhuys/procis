@@ -25,7 +25,7 @@ const DESKS = [[/palm|kernel|lauric|stear|fatty acid|tallow|soap noodle/i, "palm
 const deskFor = i => { const t = `${i.item} ${i.material || ""}`; const m = DESKS.find(([re]) => re.test(t)); return m ? `<a class="pt-desk" href="index.html?c=${m[1]}" title="Open the ${m[2]} desk">${m[2]} desk ↗</a>` : ""; };
 
 function packSize(p) { const r = p.ref; return r.size ? `${r.size}${r.unit && !String(r.size).includes(r.unit) ? " " + r.unit : ""}` : String(r.pack_size || "").replace(/\s*\(.*\)/, ""); }
-const S = { pid: null, part: null, open: null, exploded: false };
+const S = { pid: null, part: null, open: null, exploded: false, node: null, rt: null };
 const prod = () => P.items.find(p => p.id === S.pid);
 
 /* ---------- tabs ---------- */
@@ -85,7 +85,7 @@ function frame() {
   cam.near = s / 100; cam.far = s * 20; cam.updateProjectionMatrix(); ctl.update();
   home = { p: cam.position.clone(), t: c.clone() };
 }
-let tw = null;
+let tw = null, ctw = null;
 function applyExplode(now) {
   const from = Object.fromEntries(Object.entries(parts).map(([k, v]) => [k, v.node.position.clone()]));
   const to = Object.fromEntries(Object.entries(parts).map(([k, v]) => [k, v.base.clone().add(S.exploded ? v.off : new THREE.Vector3())]));
@@ -112,13 +112,25 @@ renderer.domElement.addEventListener("pointerup", e => { if (!down || Math.hypot
 renderer.domElement.addEventListener("pointermove", e => { if (e.buttons) return; const k = hit(e); if (k !== hoverPart) { hoverPart = k; highlight(k); renderer.domElement.style.cursor = k ? "pointer" : "grab"; } });
 (function loop(t) {
   requestAnimationFrame(loop);
-  if (tw) { const a = Math.min(1, (t - tw.t0) / tw.d), e = a < .5 ? 2 * a * a : 1 - Math.pow(-2 * a + 2, 2) / 2; Object.entries(parts).forEach(([k, v]) => v.node.position.lerpVectors(tw.from[k], tw.to[k], e)); if (a >= 1) tw = null; }
+  if (tw) { const a = Math.min(1, (t - tw.t0) / tw.d), e = a < .5 ? 2 * a * a : 1 - Math.pow(-2 * a + 2, 2) / 2; Object.entries(parts).forEach(([k, v]) => v.node.position.lerpVectors(tw.from[k], tw.to[k], e)); if (a >= 1) { const f = tw.after; tw = null; f && f(); } }
+  if (ctw) { const a = Math.min(1, (t - ctw.t0) / ctw.d), e = 1 - Math.pow(1 - a, 3); cam.position.lerpVectors(ctw.fp, ctw.to.p, e); ctl.target.lerpVectors(ctw.ft, ctw.to.t, e); if (a >= 1) ctw = null; }
   ctl.update(); renderer.render(scene, cam);
 })(0);
 $("#b-asm").onclick = () => setExplode(false);
 $("#b-exp").onclick = () => setExplode(true);
 $("#b-reset").onclick = () => { if (!home) return; cam.position.copy(home.p); ctl.target.copy(home.t); ctl.update(); };
-function setExplode(v) { S.exploded = v; $("#b-asm").setAttribute("aria-pressed", !v); $("#b-exp").setAttribute("aria-pressed", v); applyExplode(); }
+function setExplode(v) { S.exploded = v; $("#b-asm").setAttribute("aria-pressed", !v); $("#b-exp").setAttribute("aria-pressed", v); applyExplode(); if (!tw) refit(); else tw.after = refit; }
+/* keep the whole (exploded) pack in view: move the camera along its current direction until the box fits */
+
+function refit() {
+  if (!root) return;
+  const box = new THREE.Box3().setFromObject(root), c = box.getCenter(new THREE.Vector3()), r = box.getBoundingSphere(new THREE.Sphere()).radius;
+  const fov = THREE.MathUtils.degToRad(cam.fov) / 2, fit = r / Math.sin(Math.min(fov, Math.atan(Math.tan(fov) * cam.aspect))) * 1.08;
+  const dir = cam.position.clone().sub(ctl.target).normalize();
+  const to = { p: c.clone().add(dir.multiplyScalar(fit)), t: c.clone() };
+  if (reduced) { cam.position.copy(to.p); ctl.target.copy(to.t); ctl.update(); return; }
+  ctw = { t0: performance.now(), d: 600, fp: cam.position.clone(), ft: ctl.target.clone(), to };
+}
 
 /* ---------- part chips ---------- */
 const itemsOf = (p, k) => p.bom.filter(i => k === "_none" ? !i.part3d : i.part3d === k);
@@ -163,6 +175,13 @@ function side() {
 }
 function detail(i) {
   let h = "";
+  const p = prod();
+  if (p.deep && (i.heads || []).length) {
+    const G = p.graph, rs = new Set(), q = [...i.heads];
+    while (q.length) { const x = q.pop(); if (rs.has(x) || !G[x]) continue; rs.add(x); q.push(...G[x].inputs); }
+    const roots = [...rs].filter(x => G[x].kind === "root").map(x => G[x]);
+    h += `<p class="xs" style="margin:0 0 8px">Traced through ${rs.size - roots.length} steps to ${roots.length} natural origin${roots.length === 1 ? "" : "s"}: ${roots.slice(0, 6).map(r => `<b>${esc((ROOT[r.rootType] || [r.rootType])[0])}</b> ${esc((r.players[0] || {}).site || r.stage || "")}`).join("; ")}${roots.length > 6 ? "…" : ""} <button class="pt-trlink" data-go="flow">See the trace ↓</button></p>`;
+  }
   if (i.qtyNote) h += `<p class="xs muted" style="margin:0 0 6px">Quantity: ${esc(i.qtyNote)} ${srcA(i.qtySrc, "source")}</p>`;
   if (i.chain.length) {
     h += `<p class="lbl">Chain to raw material</p><ul class="pt-chain">`;
@@ -179,10 +198,155 @@ function detail(i) {
 }
 $("#side").addEventListener("click", e => {
   if (e.target.closest("a")) return;
+  if (e.target.closest("[data-go=flow]")) { $(".pt-trace").scrollIntoView({ behavior: reduced ? "auto" : "smooth" }); return; }
   const r = e.target.closest("tr.it"); if (!r) return;
-  S.open = S.open === r.dataset.id ? null : r.dataset.id; side(); globeData();
+  S.open = S.open === r.dataset.id ? null : r.dataset.id; S.node = null; S.rt = null; stopPlay(); side(); trace(); globeData();
 });
 $("#side").addEventListener("keydown", e => { if ((e.key === "Enter" || e.key === " ") && e.target.matches("tr.it")) { e.preventDefault(); e.target.click(); } });
+
+/* ---------- trace graph: pack <- tier 1 <- ... <- natural roots ---------- */
+const ROOT = { oil_field: ["Oil field", "#B58CFF"], gas_field: ["Gas field", "#7FB2FF"], mine: ["Mine", "#E0A060"], quarry: ["Quarry", "#CDBB98"], plantation: ["Plantation", "#6FCF8E"], farm: ["Farm", "#B5DC6E"], forest: ["Forest", "#3FB06A"], fishery: ["Fishery", "#5CC8D0"], salt_pan: ["Salt pan", "#EDE7DA"], air_water: ["Air and water", "#9FD3F5"] };
+const DEPTH_COL = ["#FF4F1F", "#FF8A3D", "#F2C14E", "#D7D36A", "#9FD3A8", "#8EC5FF", "#A9A2FF", "#C99BFF"];
+const ncol = n => n.kind === "root" && ROOT[n.rootType] ? ROOT[n.rootType][1] : DEPTH_COL[Math.min((n._d || 1), DEPTH_COL.length - 1)];
+const located = n => (n.players || []).filter(x => x.lat != null && x.lon != null);
+function viewItems() { const p = prod(); return S.open ? p.bom.filter(i => i.id === S.open) : S.part ? itemsOf(p, S.part) : p.bom; }
+/* the sub-graph seen now: BOM lines (column 0) and every node upstream of them, depth = longest path */
+function viewGraph() {
+  const p = prod(), G = p.graph, its = viewItems().filter(i => (i.heads || []).length);
+  const depth = {}, cons = {};
+  const visit = (id, d, from, guard) => {
+    const n = G[id]; if (!n || guard.has(id)) return;
+    (cons[id] = cons[id] || new Set()).add(from);
+    if ((depth[id] || 0) >= d) return; depth[id] = d;
+    const g2 = new Set(guard); g2.add(id);
+    n.inputs.forEach(x => visit(x, d + 1, id, g2));
+  };
+  its.forEach(i => i.heads.forEach(h => visit(h, 1, "bom:" + i.id, new Set())));
+  const ids = Object.keys(depth);
+  const maxD = Math.max(1, ...ids.filter(id => G[id].kind !== "root").map(id => depth[id]));
+  const rootD = maxD + 1;
+  ids.forEach(id => { G[id]._d = G[id].kind === "root" ? rootD : depth[id]; });
+  return { its, ids, cons, rootD };
+}
+function lineage(id, cons) {   // everything upstream and downstream of a node
+  const G = prod().graph, up = new Set(), down = new Set();
+  const u = x => { if (up.has(x)) return; up.add(x); (G[x] ? G[x].inputs : prod().bom.find(i => "bom:" + i.id === x)?.heads || []).forEach(u); };
+  const d = x => { if (down.has(x)) return; down.add(x); (cons[x] || []).forEach(d); };
+  u(id); d(id); return new Set([...up, ...down]);
+}
+let VG = null;
+function trace(animate = true) {
+  const p = prod(), G = p.graph; VG = viewGraph();
+  const { its, ids, cons, rootD } = VG;
+  // columns: rootD (earth, left) ... 1, then 0 = the BOM lines (right)
+  const cols = {}; ids.forEach(id => (cols[G[id]._d] = cols[G[id]._d] || []).push(id));
+  const order = { 0: its.slice().sort((a, b) => (b.cost || 0) - (a.cost || 0)).map(i => "bom:" + i.id) };
+  const pos = {}; order[0].forEach((k, i) => pos[k] = i);
+  for (let d = 1; d <= rootD; d++) {
+    const c = cols[d] || [];
+    const key = id => { const cs = [...(cons[id] || [])].map(x => pos[x]).filter(v => v != null); return cs.length ? cs.reduce((a, b) => a + b, 0) / cs.length : 999; };
+    c.sort((a, b) => key(a) - key(b) || String(G[a].rootType).localeCompare(String(G[b].rootType)));
+    order[d] = c; c.forEach((k, i) => pos[k] = i * (order[0].length / Math.max(1, c.length)));
+  }
+  const roots = ids.filter(id => G[id].kind === "root");
+  const countries = new Set(), sites = new Set();
+  ids.forEach(id => G[id].players.forEach(x => { if (x.country) countries.add(String(x.country).toUpperCase()); if (x.lat != null) sites.add(x.name + x.lat); }));
+  const deepest = Math.max(0, ...ids.map(id => G[id]._d));
+  const scope = S.open ? "One BOM line: " + (p.bom.find(i => i.id === S.open) || {}).item : S.part ? "Part: " + (S.part === "_none" ? "process and shipper" : PART_LABEL[S.part] || S.part) : "The whole pack, every BOM line";
+  $("#t-scope").textContent = scope + (p.deep ? "" : " · chains as first researched, not yet traced to the natural resource");
+  $("#t-stats").innerHTML = [[roots.length, "natural origins"], [countries.size || "—", "countries"], [sites.size, "sites on the map"], [deepest, "steps, deepest chain"]].map(([v, l]) => `<div class="pt-stat"><div class="v">${v}</div><div class="l">${l}</div></div>`).join("");
+  const byT = {}; roots.forEach(id => byT[G[id].rootType] = (byT[G[id].rootType] || 0) + 1);
+  $("#t-rtypes").innerHTML = Object.entries(byT).sort((a, b) => b[1] - a[1]).map(([t, n]) => `<button class="pt-rt" data-rt="${esc(t)}" aria-pressed="${S.rt === t}" style="--rc:${(ROOT[t] || ["", "#8EC5FF"])[1]}"><i></i>${esc((ROOT[t] || [t])[0])}<b>${n}</b></button>`).join("");
+  $("#t-sum").textContent = !S.part && !S.open && p.rootsSummary ? p.rootsSummary : "";
+  const card = id => {
+    if (id.startsWith("bom:")) { const i = p.bom.find(x => "bom:" + x.id === id); return `<button class="pt-node pack" data-id="${esc(id)}" style="--nc:#FF4F1F;--dl:${animate ? (rootD + 1) * 120 : 0}ms"><span class="s">${esc(i.item)}</span><span class="m">${esc(PART_LABEL[i.part3d] || (i.part3d ? i.part3d : "process"))} · ${inr(i.cost)}</span></button>`; }
+    const n = G[id], pl = n.players[0], rt = n.kind === "root" ? (ROOT[n.rootType] || [n.rootType])[0] : "";
+    const dl = animate ? (rootD - n._d) * 120 : 0;
+    return `<button class="pt-node${n.kind === "root" ? " root" : ""}" data-id="${esc(id)}" style="--nc:${ncol(n)};--dl:${dl}ms">${rt ? `<span class="rt">${esc(rt)}</span>` : ""}<span class="s">${esc(n.stage || n.material || "")}</span>${n.material && n.stage ? `<span class="m">${esc(n.material)}</span>` : ""}${pl ? `<span class="w" title="${esc(pl.name)}">${esc(pl.site || pl.name)}${n.players.length > 1 ? " +" + (n.players.length - 1) : ""}</span>` : ""}</button>`;
+  };
+  const head = d => d === 0 ? "HUL pack (BOM line)" : d === rootD ? "Natural origin" : d === 1 ? "Tier 1 · supplies HUL" : "Tier " + d;
+  let h = "";
+  for (let d = rootD; d >= 0; d--) if ((order[d] || []).length) h += `<div class="pt-col"><h3>${head(d)}</h3>${order[d].map(card).join("")}</div>`;
+  const fl = $("#flow"); fl.classList.toggle("anim", animate && !reduced);
+  $("#cols").innerHTML = ids.length ? h : `<p class="muted small" style="padding:16px">No chain recorded for this selection.</p>`;
+  requestAnimationFrame(() => { edges(animate); if (innerWidth < 980) fl.scrollLeft = fl.scrollWidth; });
+  markLineage();
+  nodeDetail();
+}
+function edges(animate) {
+  if (!VG) return;
+  const G = prod().graph, wrap = $("#flow-in"), r0 = wrap.getBoundingClientRect(), svg = $("#edges");
+  svg.setAttribute("width", wrap.scrollWidth); svg.setAttribute("height", wrap.scrollHeight);
+  const el = {}; $$(".pt-node", wrap).forEach(b => el[b.dataset.id] = b.getBoundingClientRect());
+  const P2 = [];
+  const add = (from, to, col, dl) => { const a = el[from], b = el[to]; if (!a || !b) return;
+    const x1 = a.right - r0.left, y1 = a.top + a.height / 2 - r0.top, x2 = b.left - r0.left, y2 = b.top + b.height / 2 - r0.top, mx = (x1 + x2) / 2;
+    const len = Math.round(Math.hypot(x2 - x1, y2 - y1) * 1.25);
+    P2.push(`<path data-a="${esc(from)}" data-b="${esc(to)}" d="M${x1},${y1} C${mx},${y1} ${mx},${y2} ${x2},${y2}" stroke="${col}" style="--len:${len};--dl:${dl}ms"/>`); };
+  VG.ids.forEach(id => { const n = G[id]; (VG.cons[id] || []).forEach(c => add(id, c, ncol(n), (VG.rootD - n._d) * 120 + 200)); });
+  svg.innerHTML = P2.join("");
+  svg.classList.toggle("draw", !!animate && !reduced);
+  markLineage();
+}
+function markLineage() {
+  if (!VG) return;
+  const G = prod().graph;
+  let on = null;
+  if (S.node && (G[S.node] || S.node.startsWith("bom:"))) on = lineage(S.node, VG.cons);
+  else if (S.rt) { on = new Set(); VG.ids.filter(id => G[id].rootType === S.rt).forEach(id => lineage(id, VG.cons).forEach(x => on.add(x))); }
+  $$("#cols .pt-node").forEach(b => { const k = b.dataset.id; b.classList.toggle("off", !!on && !on.has(k)); b.classList.toggle("on", !!on && on.has(k)); b.classList.toggle("sel", k === S.node); });
+  $$("#edges path").forEach(pth => { const x = on && on.has(pth.dataset.a) && on.has(pth.dataset.b); pth.classList.toggle("on", !!x); pth.classList.toggle("off", !!on && !x); });
+  $("#b-clear").hidden = !(S.node || S.rt);
+}
+function nodeDetail() {
+  const p = prod(), G = p.graph, id = S.node, el = $("#t-node");
+  if (!id) { el.innerHTML = ""; return; }
+  if (id.startsWith("bom:")) { const i = p.bom.find(x => "bom:" + x.id === id); el.innerHTML = i ? `<div class="pt-nd" style="--nc:#FF4F1F"><h3>${esc(i.item)}</h3><p class="xs muted">${esc(i.material || "")} · ${num(i.qty)} ${esc(i.unit || "")} per pack · ${inr(i.cost)}</p></div>` : ""; return; }
+  const n = G[id]; if (!n) { el.innerHTML = ""; return; }
+  const name = x => G[x] ? (G[x].stage || G[x].material) : (p.bom.find(i => "bom:" + i.id === x) || {}).item;
+  const feeds = [...(VG.cons[id] || [])].map(name).filter(Boolean);
+  el.innerHTML = `<div class="pt-nd" style="--nc:${ncol(n)}"><p class="lbl">${n.kind === "root" ? "Natural origin · " + esc((ROOT[n.rootType] || [n.rootType])[0]) : "Process step"}</p>
+    <h3>${esc(n.stage || "")}</h3>${n.material ? `<p class="xs muted" style="margin:0">Output: ${esc(n.material)}${n.share != null ? " · " + esc(n.share) : ""}</p>` : ""}
+    ${n.players.map(x => `<p class="pl"><b>${esc(x.name)}</b> <span class="site">${esc([x.site, x.country].filter(Boolean).join(", "))}${x.capacity ? " · " + esc(x.capacity) : ""}</span>${x.link ? `<span class="pt-link ${esc(x.link)}">${esc(x.link)}</span>` : ""} ${srcA(x.src)}${x.lat == null ? ` <span class="xs faint">no site on the map</span>` : ""}</p>`).join("")}
+    ${n.inputs.length ? `<p class="flow2">Made from: ${n.inputs.map(x => esc(name(x))).join(" · ")}</p>` : ""}
+    ${feeds.length ? `<p class="flow2">Goes into: ${feeds.map(esc).join(" · ")}</p>` : ""}
+    ${n.risk ? `<p class="flow2"><b style="color:var(--warn)">Risk:</b> ${esc(n.risk)}</p>` : ""}${n.note ? `<p class="flow2">${esc(n.note)}</p>` : ""}${n.src ? `<p class="flow2">Source: ${srcA(n.src)}</p>` : ""}</div>`;
+}
+function selectNode(id, fly = true) {
+  S.node = S.node === id ? null : id; S.rt = null;
+  $$("#t-rtypes .pt-rt").forEach(b => b.setAttribute("aria-pressed", "false"));
+  markLineage(); nodeDetail(); globeData(fly);
+}
+$("#cols").addEventListener("click", e => { const b = e.target.closest(".pt-node"); if (b) { stopPlay(); selectNode(b.dataset.id); } });
+$("#t-rtypes").addEventListener("click", e => { const b = e.target.closest(".pt-rt"); if (!b) return; stopPlay(); S.rt = S.rt === b.dataset.rt ? null : b.dataset.rt; S.node = null; $$("#t-rtypes .pt-rt").forEach(x => x.setAttribute("aria-pressed", x.dataset.rt === S.rt)); markLineage(); nodeDetail(); globeData(true); });
+$("#b-clear").onclick = () => { stopPlay(); S.node = null; S.rt = null; trace(false); globeData(true); };
+new ResizeObserver(() => edges(false)).observe($("#flow"));
+/* Play: walk the costliest line from its natural origin to the pack, flying the globe stop by stop */
+let play = null;
+function stopPlay() { if (play) { clearTimeout(play.t); play = null; $("#b-play").textContent = "▶ Play the trace"; } }
+$("#b-play").onclick = () => {
+  if (play) return stopPlay();
+  const p = prod(), G = p.graph, its = viewItems().filter(i => i.heads && i.heads.length).sort((a, b) => (b.cost || 0) - (a.cost || 0));
+  if (!its.length) return toast("Nothing to trace here");
+  // the deepest located path from the line's heads
+  let best = [];
+  const walk = (id, path, seen) => { if (seen.has(id) || !G[id]) return; const pa = [...path, id]; const ins = G[id].inputs.filter(x => G[x]); if (!ins.length) { const sc = pa.filter(x => located(G[x]).length).length * 10 + pa.length; if (sc > (best.sc || 0)) { best = pa; best.sc = sc; } return; } const s2 = new Set(seen); s2.add(id); ins.forEach(x => walk(x, pa, s2)); };
+  its[0].heads.forEach(h => walk(h, [], new Set()));
+  const steps = [...best].reverse().concat("bom:" + its[0].id);
+  $("#b-play").textContent = "■ Stop";
+  $("#flow").scrollTo({ left: 0, behavior: reduced ? "auto" : "smooth" });
+  play = { i: 0 };
+  const step = () => {
+    if (!play) return;
+    const id = steps[play.i]; S.node = null; selectNode(id, false);
+    const n = G[id], loc = n ? located(n)[0] : null;
+    if (globe && loc) globe.pointOfView({ lat: loc.lat, lng: loc.lon, altitude: .75 }, reduced ? 0 : 1400);
+    const b = $(`#cols .pt-node[data-id="${CSS.escape(id)}"]`); if (b) b.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "nearest", inline: "center" });
+    play.i++;
+    if (play.i < steps.length) play.t = setTimeout(step, 2300); else { play.t = setTimeout(() => { stopPlay(); globeData(true); }, 2600); }
+  };
+  step();
+};
 
 /* ---------- globe ---------- */
 let globe = null, GEO = null;
@@ -193,34 +357,39 @@ function initGlobe() {
   globe = Globe({ animateIn: !reduced })(gEl)
     .backgroundColor("rgba(0,0,0,0)").showAtmosphere(true).atmosphereColor("#FF4F1F").atmosphereAltitude(.12).showGraticules(true)
     .polygonCapColor(() => "rgba(42,48,60,.95)").polygonSideColor(() => "rgba(255,79,31,.06)").polygonStrokeColor(() => "rgba(242,238,230,.10)").polygonAltitude(.004)
-    .pointLat("lat").pointLng("lon").pointAltitude(.02).pointRadius(d => d.sel ? .55 : .38).pointColor(d => TIER_COL[d.tier] || "#8EC5FF").pointsMerge(false)
-    .pointLabel(d => `<div style="font:11.5px Geist,sans-serif;background:#12151C;border:1px solid rgba(242,238,230,.22);padding:6px 9px;border-radius:5px;color:#F2EEE6;max-width:260px;white-space:normal"><b>${esc(d.name)}</b><br>${esc(d.where || "")}<br><span style="color:#A7A298">Tier ${d.tier}: ${esc(d.stage)} · for ${esc(d.item)}</span></div>`)
-    .onPointClick(d => { S.open = d.bid; const it = prod().bom.find(i => i.id === d.bid); if (it && it.part3d !== S.part) selectPart(it.part3d || "_none", true); else side(); globeData(); })
+    .pointLat("lat").pointLng("lon").pointAltitude(d => d.root ? .035 : .02).pointRadius(d => d.sel ? .6 : d.root ? .45 : .34).pointColor("col").pointsMerge(false)
+    .pointLabel(d => `<div style="font:11.5px Geist,sans-serif;background:#12151C;border:1px solid rgba(242,238,230,.22);padding:6px 9px;border-radius:5px;color:#F2EEE6;max-width:280px;white-space:normal"><b>${esc(d.name)}</b><br>${esc(d.site || "")}${d.capacity ? " · " + esc(d.capacity) : ""}<br><span style="color:${d.col}">${esc(d.what)}</span></div>`)
+    .onPointClick(d => { stopPlay(); S.node = null; selectNode(d.nid, false); const b = $(`#cols .pt-node[data-id="${CSS.escape(d.nid)}"]`); if (b) b.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" }); })
     .arcStartLat(d => d.a.lat).arcStartLng(d => d.a.lon).arcEndLat(d => d.b.lat).arcEndLng(d => d.b.lon)
-    .arcColor(d => [TIER_COL[d.a.tier] + "33", TIER_COL[d.b.tier] || "#FF4F1F"]).arcStroke(.35).arcAltitudeAutoScale(.35)
-    .arcDashLength(.5).arcDashGap(.2).arcDashAnimateTime(reduced ? 0 : 2400);
+    .arcColor(d => [d.a.col + "44", d.b.col]).arcStroke(d => d.on ? .6 : .3).arcAltitudeAutoScale(.4)
+    .arcDashLength(.45).arcDashGap(.15).arcDashAnimateTime(reduced ? 0 : 2200)
+    .ringLat("lat").ringLng("lon").ringColor(d => t => d.col + Math.round((1 - t) * 255).toString(16).padStart(2, "0")).ringMaxRadius(3.2).ringPropagationSpeed(2.2).ringRepeatPeriod(1100);
   const m = globe.globeMaterial(); m.color && m.color.set("#0f131b"); if (m.emissive) m.emissive.set("#0b0e14");
   globe.controls().autoRotate = false;
   globe.width(gEl.clientWidth).height(gEl.clientHeight);
   fetch("data/countries.json").then(r => r.json()).then(g => { GEO = g; globe.polygonsData(g.features.filter(f => f.properties.iso !== "ATA")); }).catch(() => {});
   new ResizeObserver(() => globe.width(gEl.clientWidth).height(gEl.clientHeight)).observe(gEl);
 }
-function globeData() {
-  const p = prod(); const its = S.open ? p.bom.filter(i => i.id === S.open) : S.part ? itemsOf(p, S.part) : p.bom;
-  const pts = [], arcs = [];
-  its.forEach(i => {
-    const byTier = {};
-    i.chain.forEach(t => t.players.forEach(pl => { if (pl.lat == null || pl.lon == null) return; const d = { ...pl, lat: +pl.lat, lon: +pl.lon, tier: t.tier || 1, stage: t.stage || "", item: i.item, bid: i.id, sel: S.open === i.id }; pts.push(d); (byTier[d.tier] = byTier[d.tier] || []).push(d); }));
-    Object.keys(byTier).map(Number).sort((a, b) => a - b).forEach(t => { const up = byTier[t + 1]; if (up) up.forEach(a => arcs.push({ a, b: byTier[t][0] })); });
-  });
-  const nAll = its.reduce((s, i) => s + i.chain.reduce((x, t) => x + t.players.length, 0), 0);
-  $("#g-title").textContent = S.open ? "Chain: " + (p.bom.find(i => i.id === S.open) || {}).item : S.part ? "Chain: " + (S.part === "_none" ? "process and shipper" : PART_LABEL[S.part] || S.part) : "Supply chain: " + p.short;
-  $("#g-count").textContent = `${pts.length} of ${nAll} players placed`;
-  const tiers = [...new Set(pts.map(d => d.tier))].sort();
-  $("#g-legend").innerHTML = tiers.map(t => `<span><i style="background:${TIER_COL[t] || "#8EC5FF"}"></i>Tier ${t}</span>`).join("") + `<span class="faint">Tier 1 is the supplier nearest HUL; higher tiers run back to the raw material. Players without a known site are listed in the BOM, not plotted.</span>`;
+function globeData(fly = true) {
+  const p = prod(); if (!VG) return;
+  const G = p.graph;
+  let on = null;
+  if (S.node) on = lineage(S.node, VG.cons); else if (S.rt) { on = new Set(); VG.ids.filter(id => G[id].rootType === S.rt).forEach(id => lineage(id, VG.cons).forEach(x => on.add(x))); }
+  const ids = VG.ids.filter(id => !on || on.has(id));
+  const pts = [], arcs = [], at = {};
+  ids.forEach(id => { const n = G[id]; at[id] = [];
+    located(n).forEach(x => { const d = { ...x, nid: id, col: ncol(n), root: n.kind === "root", sel: id === S.node, what: (n.kind === "root" ? (ROOT[n.rootType] || [n.rootType])[0] + ": " : "Tier " + n._d + ": ") + (n.stage || n.material || "") }; pts.push(d); at[id].push(d); }); });
+  // an edge input -> consumer; a consumer with no site passes the arc on to its own nearest located consumer
+  const target = (id, seen = new Set()) => { if (seen.has(id)) return []; seen.add(id); if (at[id] && at[id].length) return [at[id][0]]; return [...(VG.cons[id] || [])].filter(c => !on || on.has(c)).flatMap(c => target(c, seen)); };
+  ids.forEach(id => (at[id] || []).forEach(a => [...(VG.cons[id] || [])].filter(c => !on || on.has(c)).forEach(c => target(c).forEach(b => { if (a.lat !== b.lat || a.lon !== b.lon) arcs.push({ a, b, on: !!on }); }))));
+  const nPl = ids.reduce((s, id) => s + G[id].players.length, 0);
+  $("#g-title").textContent = S.node ? "Lineage: " + (G[S.node] ? G[S.node].stage : (p.bom.find(i => "bom:" + i.id === S.node) || {}).item) : S.open ? "Chain: " + (p.bom.find(i => i.id === S.open) || {}).item : S.part ? "Chain: " + (S.part === "_none" ? "process and shipper" : PART_LABEL[S.part] || S.part) : "Supply chain: " + p.short;
+  $("#g-count").textContent = `${pts.length} of ${nPl} sites placed`;
+  const rts = [...new Set(ids.filter(id => G[id].kind === "root").map(id => G[id].rootType))];
+  $("#g-legend").innerHTML = rts.map(t => `<span><i style="background:${(ROOT[t] || ["", "#8EC5FF"])[1]}"></i>${esc((ROOT[t] || [t])[0])}</span>`).join("") + `<span><i style="background:#F2C14E"></i>Processing</span><span><i style="background:#FF4F1F"></i>Tier 1 supplier</span><span class="faint">Arcs run with the material, from the ground towards HUL. Players without a known site are in the trace, not on the map.</span>`;
   if (!globe) return;
-  globe.pointsData(pts).arcsData(arcs);
-  if (pts.length) { const la = pts.reduce((s, d) => s + d.lat, 0) / pts.length, lo = pts.reduce((s, d) => s + d.lon, 0) / pts.length; const spread = Math.max(...pts.map(d => Math.hypot(d.lat - la, d.lon - lo))); globe.pointOfView({ lat: la, lng: lo, altitude: spread > 60 ? 2.3 : spread > 20 ? 1.6 : 1.0 }, reduced ? 0 : 900); }
+  globe.pointsData(pts).arcsData(arcs.slice(0, 600)).ringsData(reduced ? [] : pts.filter(d => d.root || d.sel).slice(0, 60));
+  if (fly && pts.length) { const la = pts.reduce((s, d) => s + d.lat, 0) / pts.length, lo = pts.reduce((s, d) => s + d.lon, 0) / pts.length; const spread = Math.max(...pts.map(d => Math.hypot(d.lat - la, d.lon - lo))); globe.pointOfView({ lat: la, lng: lo, altitude: spread > 60 ? 2.4 : spread > 20 ? 1.7 : 1.0 }, reduced ? 0 : 900); }
 }
 
 /* ---------- should-cost ---------- */
@@ -262,7 +431,7 @@ function skus() {
   const p = prod(); $("#sku-n").textContent = `${p.skus.length} SKUs`;
   $("#skus").innerHTML = p.skus.length ? `<table class="pt-skus"><thead><tr><th>Variant</th><th>Size</th><th>Format</th><th class="n">MRP</th></tr></thead><tbody>${p.skus.map(s => `<tr><td>${s.url ? srcA(s.url, s.variant) : esc(s.variant)}</td><td>${esc(s.size ?? "")} ${esc(s.unit || "")}</td><td class="muted">${esc(s.format || "")}</td><td class="n">${s.mrp_inr != null ? inr(s.mrp_inr, 0) : "—"}</td></tr>`).join("")}</tbody></table>${p.plants.length ? `<p class="pt-note"><b>Plant on pack:</b> ${p.plants.map(esc).join("; ")}</p>` : ""}` : `<p class="muted small">No SKUs recorded.</p>`;
   const list = [];
-  if (p.id === "kissan-ketchup") list.push(`<b>Pack mismatch.</b> The BOM is costed for the 1 kg squeeze bottle; the 3D model is the 200 g glass bottle. Glass-bottle costing is not done yet.`);
+  if (p.id === "kissan-ketchup" && !/200\s*g/.test(p.ref.size || "")) list.push(`<b>Pack mismatch.</b> The BOM is costed for the 1 kg squeeze bottle; the 3D model is the 200 g glass bottle.`);
   (p.unsure || []).forEach(u => list.push(esc(typeof u === "string" ? u : u.claim || u.what || JSON.stringify(u))));
   (p.weakest || []).slice(0, 6).forEach(u => list.push(`<b>Weak estimate:</b> ${esc(typeof u === "string" ? u : u.item || JSON.stringify(u))}`));
   (p.skuUnsure || []).forEach(u => list.push(`<b>SKU:</b> ${esc(typeof u === "string" ? u : JSON.stringify(u))}`));
@@ -272,17 +441,17 @@ function skus() {
 
 /* ---------- selection ---------- */
 function selectPart(k, keepOpen) {
-  S.part = k || null; if (!keepOpen) S.open = null;
-  chips(); side(); globeData(); highlight(hoverPart);
+  S.part = k || null; if (!keepOpen) S.open = null; S.node = null; S.rt = null; stopPlay();
+  chips(); side(); trace(); globeData(); highlight(hoverPart);
   history.replaceState(null, "", `#${S.pid}${S.part ? "/" + S.part : ""}`);
 }
 function pick(id) {
   if (!P.items.some(p => p.id === id)) id = P.items[0].id;
-  S.pid = id; S.part = null; S.open = null;
+  S.pid = id; S.part = null; S.open = null; S.node = null; S.rt = null; stopPlay();
   $$(".pt-tab").forEach(b => b.setAttribute("aria-selected", b.dataset.id === id));
   const p = prod();
   $("#vnote").textContent = `Size ${p.dims ? `${p.dims.w} × ${p.dims.h} × ${p.dims.d} cm` : "—"} (${p.dimsSrc || ""}). Model built from the real Amazon.in pack photos.`;
-  chips(); side(); cost(); skus(); globeData();
+  chips(); side(); cost(); skus(); trace(); globeData();
   ctl.autoRotate = !reduced;
   loadModel(p).catch(e => { console.error(e); toast("Model failed to load"); });
   history.replaceState(null, "", `#${id}`);
@@ -291,4 +460,9 @@ size(); initGlobe();
 const [h0, h1] = location.hash.slice(1).split("/");
 pick(h0 || P.items[0].id);
 if (h1) selectPart(h1);
-window.__pt = { S, parts: () => Object.keys(parts) };
+addEventListener("hashchange", () => {
+  const [a, b] = location.hash.slice(1).split("/");
+  if (a && a !== S.pid) pick(a);
+  if (b && b !== S.part) selectPart(b);
+});
+window.__pt = { S, parts: () => Object.keys(parts), VG: () => VG, cam, ctl, root: () => root, THREE, refit };
