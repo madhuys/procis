@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Procis · Product teardown</title>
+<meta name="description" content="Procis product teardown: five HUL flagship packs in 3D. Click a part to see its bill of materials, the supply chain to raw materials on the globe, and its should-cost.">
+<meta name="theme-color" content="#0B0D12">
+<link rel="icon" href="../brand/procis-mark-reversed.svg" type="image/svg+xml">
+<link rel="preload" href="../fonts/Geist-VF.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="desk.css">
+<link rel="stylesheet" href="products.css">
+<script type="importmap">{ "imports": { "three": "./vendor/three/three.module.js", "three/addons/": "./vendor/three/jsm/" } }</script>
+</head>
+<body class="pt">
+<a class="skip" href="#main">Skip to content</a>
+<header class="top">
+  <a class="brand" href="../" aria-label="Procis home"><img src="../brand/procis-mark-reversed.svg" width="28" height="28" alt=""><span class="word">Procis</span></a>
+  <span class="lab">Product teardown</span>
+  <nav class="pt-switch" aria-label="Desk">
+    <a href="index.html">Commodity desk</a>
+    <a href="products.html" aria-current="page">Products</a>
+  </nav>
+  <a class="x-close" href="../" aria-label="Close and go back to Procis" title="Close">
+    <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M1 1l12 12M13 1L1 13" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+  </a>
+</header>
+
+<div class="pt-tabs" id="tabs" role="tablist" aria-label="Products"></div>
+
+<main id="main" class="pt-main">
+  <section class="pt-hero">
+    <div class="pt-view">
+      <div class="pt-canvas" id="viewer" aria-label="3D model. Drag to turn, scroll to zoom, click a part."></div>
+      <div class="pt-vbar">
+        <div class="seg" role="group" aria-label="View">
+          <button id="b-asm" aria-pressed="true">Assembled</button>
+          <button id="b-exp" aria-pressed="false">Exploded</button>
+        </div>
+        <button class="btn" id="b-reset">Reset view</button>
+      </div>
+      <div class="pt-chips" id="chips" aria-label="Parts"></div>
+      <p class="xs faint pt-vnote" id="vnote"></p>
+    </div>
+    <aside class="pt-side" id="side" aria-live="polite"></aside>
+  </section>
+
+  <section class="pt-row">
+    <div class="pt-card pt-globe-card">
+      <div class="pt-h"><h2 id="g-title">Supply chain</h2><span class="tag tag--mute" id="g-count"></span></div>
+      <div class="pt-globe" id="pglobe"></div>
+      <div class="pt-legend xs muted" id="g-legend"></div>
+    </div>
+    <div class="pt-card">
+      <div class="pt-h"><h2>Should-cost</h2><span class="tag tag--warn">estimate</span></div>
+      <div id="cost"></div>
+    </div>
+  </section>
+
+  <section class="pt-row">
+    <div class="pt-card"><div class="pt-h"><h2>SKUs on sale</h2><span class="tag tag--mute" id="sku-n"></span></div><div id="skus"></div></div>
+    <div class="pt-card"><div class="pt-h"><h2>What is not settled</h2></div><div id="caveats"></div></div>
+  </section>
+  <p class="xs faint pt-foot">Static snapshot to <b id="asof"></b>. Prices and players link to their source; quantities marked <i>estimate</i> are Procis' working, not HUL's figures. Should-cost is a negotiation reference, not HUL's cost.</p>
+</main>
+<div class="toast" id="toast" role="status"></div>
+<script src="vendor/globe.gl.min.js"></script>
+<script src="data/products.js"></script>
+<script type="module" src="products.js"></script>
+</body>
+</html>
